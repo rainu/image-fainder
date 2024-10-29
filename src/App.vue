@@ -9,6 +9,7 @@
 			<v-spacer />
 
 			<template v-slot:append>
+				<DeviceIndicator />
 				<v-btn icon="mdi-cog" @click.stop="drawer.right = !drawer.right"></v-btn>
 			</template>
 		</v-app-bar>
@@ -50,9 +51,10 @@ import { useSettingsStore } from './store/settings.ts'
 import { RouteDirectoryAnalyse, RouteDirectorySearch, RouteExport, RouteImport } from './router'
 import DirectoryPicker from './components/DirectoryPicker.vue'
 import Settings from "./components/Settings.vue"
+import DeviceIndicator from "./components/DeviceIndicator.vue"
 
 export default defineComponent({
-	components: { Settings, DirectoryPicker },
+	components: { DeviceIndicator, Settings, DirectoryPicker },
 	data() {
 		return {
 			drawer: {

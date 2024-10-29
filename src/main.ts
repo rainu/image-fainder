@@ -13,6 +13,7 @@ import * as directives from 'vuetify/directives'
 import router from './router/index'
 
 import App from './App.vue'
+import { useAiStore } from './store/ai.ts'
 
 const database = await createVectorDatabase()
 const pinia = createPinia()
@@ -22,4 +23,11 @@ const vuetify = createVuetify({
 	directives,
 })
 
-createApp(App).use(pinia).use(database).use(router).use(vuetify).mount('#app')
+let app = createApp(App)
+app = app.use(pinia)
+await useAiStore().detectDevice()
+
+app = app.use(database)
+app = app.use(router)
+app = app.use(vuetify)
+app.mount('#app')

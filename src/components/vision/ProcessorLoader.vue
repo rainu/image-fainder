@@ -31,7 +31,7 @@ export default defineComponent({
 		}
 	},
 	computed: {
-		...mapState(useAiStore, ['processor']),
+		...mapState(useAiStore, ['processor', 'device']),
 	},
 	methods: {
 		...mapActions(useAiStore, ['setProcessor']),
@@ -46,7 +46,7 @@ export default defineComponent({
 						this.progress = progress.progress
 					}
 				},
-				device: 'webgpu',
+				device: this.device.type,
 			})
 			this.progress = 100
 			this.setProcessor(model)
