@@ -52,11 +52,11 @@ export default defineComponent({
 		},
 		deviceIconColor() {
 			if (this.device.type === 'cpu') {
-				return 'orange'
+				return 'warning'
 			} else if (this.device.type === 'webgpu') {
-				return 'green'
+				return 'success'
 			} else {
-				return 'grey'
+				return 'info'
 			}
 		},
 		gpuInfo() {
