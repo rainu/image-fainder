@@ -49,6 +49,7 @@
 import { defineComponent } from 'vue'
 import ImageItem from './ImageItem.vue'
 import ProgressBar from '../progress/Bar.vue'
+import { delayProgress } from "../progress/delayed.ts"
 
 export default defineComponent({
 	name: 'ImageDeletion',
@@ -114,6 +115,7 @@ export default defineComponent({
 			this.progress.total = this.toDelete.length
 			this.progress.current = 0
 
+			const delayedProgression = delayProgress((i) => (this.progress.current = i))
 			try {
 				for (let fileName of this.toDelete) {
 					try {
@@ -128,7 +130,7 @@ export default defineComponent({
 						console.warn(e)
 					}
 
-					this.progress.current++
+					delayedProgression.add(1)
 				}
 			} catch (e) {
 				console.error(e)

@@ -103,7 +103,7 @@ export default defineComponent({
 				return
 			}
 
-			this.progress.title = 'Step 2/4: Process unknown images'
+			this.progress.title = 'Step 2/4: Analyse unknown images'
 			this.progress.total = files.length
 			this.progress.current = 0
 
