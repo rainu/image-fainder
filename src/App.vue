@@ -27,6 +27,9 @@
 						prepend-icon="mdi-image-search-outline"
 					></v-list-item>
 				</template>
+				<template v-else>
+					<v-list-item :to="{ name: RouteHome }" title="Start" prepend-icon="mdi-home"></v-list-item>
+				</template>
 				<v-list-item :to="{ name: RouteImport }" title="Import" prepend-icon="mdi-import"></v-list-item>
 				<v-list-item :to="{ name: RouteExport }" title="Export" prepend-icon="mdi-export"></v-list-item>
 			</v-list>
@@ -48,7 +51,7 @@ import { defineComponent } from 'vue'
 import { mapState } from 'pinia'
 import { useFileStore } from './store/file.ts'
 import { useSettingsStore } from './store/settings.ts'
-import { RouteDirectoryAnalyse, RouteDirectorySearch, RouteExport, RouteImport } from './router'
+import { RouteDirectoryAnalyse, RouteDirectorySearch, RouteExport, RouteHome, RouteImport } from "./router"
 import DirectoryPicker from './components/DirectoryPicker.vue'
 import Settings from "./components/Settings.vue"
 import DeviceIndicator from "./components/DeviceIndicator.vue"
@@ -61,6 +64,7 @@ export default defineComponent({
 				left: false,
 				right: false,
 			},
+			RouteHome,
 			RouteDirectoryAnalyse,
 			RouteDirectorySearch,
 			RouteImport,

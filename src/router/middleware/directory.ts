@@ -1,5 +1,6 @@
 import { NavigationGuardNext, RouteLocationNormalized } from 'vue-router'
 import { useFileStore } from "../../store/file.ts"
+import { RouteHome } from "../index.ts"
 
 export function directoryMiddleware(
 	to: RouteLocationNormalized,
@@ -12,5 +13,5 @@ export function directoryMiddleware(
 		return
 	}
 
-	next('/') // Redirect to home if directory parameter is missing
+	next({ name: RouteHome })
 }

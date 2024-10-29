@@ -1,7 +1,9 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { directoryMiddleware } from './middleware/directory.ts'
+import { supportMiddleware } from './middleware/support.ts'
 
 export const RouteHome = 'home'
+export const RouteUnsupported = 'unsupported'
 export const RouteDirectory = 'directory'
 export const RouteDirectoryAnalyse = RouteDirectory + '-analyse'
 export const RouteDirectorySearch = RouteDirectory + '-search'
@@ -14,21 +16,24 @@ export default createRouter({
 		{
 			name: RouteHome,
 			path: '/',
+			beforeEnter: supportMiddleware,
 			component: () => import('../views/Home.vue'),
 		},
 		{
 			name: RouteImport,
 			path: '/exchange/import',
+			beforeEnter: supportMiddleware,
 			component: () => import('../views/Import.vue'),
 		},
 		{
 			name: RouteExport,
 			path: '/exchange/export',
+			beforeEnter: supportMiddleware,
 			component: () => import('../views/Export.vue'),
 		},
 		{
 			path: '/directory',
-			beforeEnter: directoryMiddleware,
+			beforeEnter: [supportMiddleware, directoryMiddleware],
 			children: [
 				{
 					name: RouteDirectory,
@@ -46,6 +51,11 @@ export default createRouter({
 					component: () => import('../views/directory/Search.vue'),
 				}
 			]
-		}
+		},
+		{
+			name: RouteUnsupported,
+			path: '/unsupported',
+			component: () => import('../views/Unsupported.vue'),
+		},
 	],
 })

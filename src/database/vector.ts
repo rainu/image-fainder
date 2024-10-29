@@ -140,7 +140,7 @@ export function createVectorDatabase(): Promise<Plugin> {
 	})
 
 	return new Promise((resolve, reject) => {
-		const req = indexedDB.open(__PROJECT_NAME__, 1)
+		const req = window.indexedDB.open(__PROJECT_NAME__, 1)
 
 		req.onerror = reject
 		req.onupgradeneeded = (event) => {
