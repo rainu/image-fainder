@@ -1,0 +1,59 @@
+<template>
+	<div :class="class">
+		<v-card v-if="url" density="compact">
+			<v-img :src="url" />
+			<slot></slot>
+		</v-card>
+		<v-icon v-else size="256" icon="mdi-image-off"></v-icon>
+	</div>
+</template>
+
+<script lang="ts">
+import { defineComponent } from 'vue'
+
+export interface Image {
+	name: string
+	similarity: number
+}
+
+export default defineComponent({
+	name: 'ImageItem',
+	props: {
+		baseDir: {
+			type: FileSystemDirectoryHandle,
+			required: true,
+		},
+		name: {
+			type: String,
+			required: true,
+		},
+		class: {
+			type: String,
+			default: '',
+		},
+	},
+	data() {
+		return {
+			url: '',
+		}
+	},
+	watch: {
+		image: {
+			deep: true,
+			immediate: true,
+			async handler() {
+				try {
+					const file = await this.baseDir.getFileHandle(this.name)
+					this.url = URL.createObjectURL(await file.getFile())
+				} catch (e) {
+					if (e.name !== 'NotFoundError') {
+						console.error(e)
+					}
+				}
+			},
+		},
+	},
+})
+</script>
+
+<style scoped></style>
