@@ -22,7 +22,7 @@ import ClipVisionModelLoader from './ClipVisionModelLoader.vue'
 import { useAiStore } from '../../store/ai.ts'
 import ProgressDialog from '../progress/Dialog.vue'
 import { delayProgress } from '../progress/delayed.ts'
-import { VectorEntry, VectorEntryKey } from '../../database/vector.ts'
+import { VectorEntryKey } from '../../database/vector.ts'
 
 const validImageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.tiff']
 
@@ -31,16 +31,16 @@ export default defineComponent({
 	components: { ProgressDialog, ClipVisionModelLoader, ProcessorLoader },
 	props: {
 		directory: {
-			type: Object as () => FileSystemDirectoryHandle,
-			required: false,
+			type: Object as () => FileSystemDirectoryHandle | null,
+			default: null,
 		},
 	},
 	data() {
 		return {
 			progress: {
 				title: '',
-				total: null as Number | null,
-				current: null as Number | null,
+				total: 0,
+				current: 0,
 				doing: false,
 			},
 		}
@@ -67,7 +67,7 @@ export default defineComponent({
 			return matches
 		},
 		async scanImageFiles(fileNames: string[]): Promise<FileSystemFileHandle[]> {
-			if(fileNames.length === 0) {
+			if (fileNames.length === 0 || !this.directory) {
 				return []
 			}
 
@@ -99,7 +99,7 @@ export default defineComponent({
 			return files
 		},
 		async analyseImages(files: FileSystemFileHandle[]) {
-			if(files.length === 0) {
+			if (files.length === 0 || !this.processor || !this.visionModel || !this.directory) {
 				return
 			}
 
@@ -118,15 +118,19 @@ export default defineComponent({
 				await this.$vectorDB.save({
 					directory: this.directory.name,
 					path: `${this.directory.name}/${file.name}`,
-					embedding: Array.from(result.image_embeds[0].data),
+					embedding: result.image_embeds[0].data,
 				})
 
 				delayedProgression.add(1)
 			}
 		},
 		async getOrphanedImages(fileNames: string[]): Promise<VectorEntryKey[]> {
+			if (!this.directory) {
+				return []
+			}
+
 			const count = await this.$vectorDB.count(this.directory.name)
-			if(count === 0) {
+			if (count === 0) {
 				return []
 			}
 
@@ -134,14 +138,14 @@ export default defineComponent({
 			this.progress.total = count
 			this.progress.current = 0
 
-			let fileNameMap = {}
+			let fileNameMap = {} as Record<string, boolean>
 			for (const fileName of fileNames) {
 				fileNameMap[fileName] = true
 			}
 
 			const result = [] as VectorEntryKey[]
 			const delayedProgression = delayProgress((i) => (this.progress.current = i))
-			await this.$vectorDB.iterate(this.directory.name, (entry: VectorEntry) => {
+			await this.$vectorDB.iterate(this.directory.name, (entry) => {
 				if (!fileNameMap[entry.path]) {
 					result.push(entry.id)
 				}
@@ -153,7 +157,7 @@ export default defineComponent({
 			return result
 		},
 		async deleteOrphaned(keys: VectorEntryKey[]): Promise<void> {
-			if(keys.length === 0) {
+			if (keys.length === 0) {
 				return
 			}
 
@@ -169,6 +173,10 @@ export default defineComponent({
 			}
 		},
 		async process() {
+			if(!this.directory) {
+				return
+			}
+
 			const fileNames = await this.listFiles(this.directory.name, this.directory)
 			const files = await this.scanImageFiles(fileNames)
 			await this.analyseImages(files)

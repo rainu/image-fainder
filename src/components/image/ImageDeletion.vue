@@ -77,7 +77,7 @@ export default defineComponent({
 	},
 	computed: {
 		columnCount() {
-			switch (this.$vuetify.display.name) {
+			switch (String(this.$vuetify.display.name)) {
 				case 'xs':
 					return 4
 				case 'sm':
@@ -96,11 +96,11 @@ export default defineComponent({
 		},
 	},
 	methods: {
-		onClickImage(i) {
-			if (this.selected[i]) {
-				delete this.selected[i]
+		onClickImage(name: string) {
+			if (this.selected[name]) {
+				delete this.selected[name]
 			} else {
-				this.selected[i] = true
+				this.selected[name] = true
 			}
 		},
 		async deleteDatabaseEntry(fileName: string) {

@@ -31,25 +31,24 @@ export default defineComponent({
 		}
 	},
 	computed: {
-		...mapState(useAiStore, ['processor', 'device']),
+		...mapState(useAiStore, ['processor']),
 	},
 	methods: {
 		...mapActions(useAiStore, ['setProcessor']),
 		async load() {
-			if (this.modelValue) {
+			if (this.processor) {
 				this.progress = 100
 				return
 			}
-			const model = await AutoProcessor.from_pretrained(this.modelName, {
-				progress_callback: (progress) => {
+			const processor = await AutoProcessor.from_pretrained(this.modelName, {
+				progress_callback: (progress: { progress: number }) => {
 					if (progress.progress) {
 						this.progress = progress.progress
 					}
 				},
-				device: this.device.type,
 			})
 			this.progress = 100
-			this.setProcessor(model)
+			this.setProcessor(processor)
 		},
 	},
 	mounted() {

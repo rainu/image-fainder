@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { PreTrainedModel, PreTrainedTokenizer, Processor } from '@huggingface/transformers'
+declare const __PROJECT_NAME__: string
 
 const storePrefix = `${__PROJECT_NAME__}:settings:`
 const searchPrefix = `${storePrefix}:search:`
@@ -12,10 +12,10 @@ const keyShowSimilarity = searchPrefix + 'showSimilarity'
 export const useSettingsStore = defineStore('settings', {
 	state: () => {
 		return {
-			theme: localStorage.getItem(keyTheme),
+			theme: localStorage.getItem(keyTheme) || 'light',
 			search: {
-				itemsPerPage: Number.parseInt(localStorage.getItem(keyItemsPerPage)) || 25,
-				similarityThreshold: Number.parseFloat(localStorage.getItem(keySimilarityThreshold)) || 0.1,
+				itemsPerPage: Number.parseInt(localStorage.getItem(keyItemsPerPage) || '25'),
+				similarityThreshold: Number.parseFloat(localStorage.getItem(keySimilarityThreshold) || '0.1'),
 				showSimilarity: Boolean(localStorage.getItem(keyShowSimilarity)),
 			}
 		}
@@ -31,15 +31,15 @@ export const useSettingsStore = defineStore('settings', {
 		},
 		setItemsPerPage(value: number) {
 			this.search.itemsPerPage = value
-			localStorage.setItem(keyItemsPerPage, this.search.itemsPerPage)
+			localStorage.setItem(keyItemsPerPage, `${this.search.itemsPerPage}`)
 		},
 		setSimilarityThreshold(value: number) {
 			this.search.similarityThreshold = value
-			localStorage.setItem(keySimilarityThreshold, this.search.similarityThreshold)
+			localStorage.setItem(keySimilarityThreshold, `${this.search.similarityThreshold}`)
 		},
 		setShowSimilarity(value: boolean) {
 			this.search.showSimilarity = value
-			localStorage.setItem(keyShowSimilarity, this.search.showSimilarity)
+			localStorage.setItem(keyShowSimilarity, `${this.search.showSimilarity}`)
 		}
 	},
 })

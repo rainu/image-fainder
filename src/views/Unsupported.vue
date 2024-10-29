@@ -11,11 +11,13 @@ import { defineComponent } from 'vue'
 export default defineComponent({
 	data(){
 		return {
-			reason: ''
+			reason: null as string | null
 		}
 	},
 	mounted() {
-		this.reason = this.$route.query.reason
+		const reasonQuery = this.$route.query.reason
+		this.reason = Array.isArray(reasonQuery) ? reasonQuery[0] : reasonQuery
+
 		window.history.pushState({}, '', '/')
 	},
 })

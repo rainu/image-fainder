@@ -1,4 +1,12 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHashHistory, RouteLocationGeneric, Router } from "vue-router"
+
+declare module '@vue/runtime-core' {
+	interface ComponentCustomProperties {
+		$router: Router
+		$route: RouteLocationGeneric
+	}
+}
+
 import { directoryMiddleware } from './middleware/directory.ts'
 import { supportMiddleware } from './middleware/support.ts'
 
@@ -59,3 +67,4 @@ export default createRouter({
 		},
 	],
 })
+

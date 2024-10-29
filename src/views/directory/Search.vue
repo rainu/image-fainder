@@ -6,7 +6,7 @@
 	<AutoTokenizerLoader modelName="jinaai/jina-clip-v1" />
 	<ClipTextModelLoader modelName="jinaai/jina-clip-v1" />
 
-	<template v-if="images && images.length > 0">
+	<template v-if="mainDirectory && images && images.length > 0">
 		<ImagePaging :base-dir="mainDirectory" :images="images" />
 	</template>
 	<template v-else>
@@ -35,20 +35,20 @@ export default defineComponent({
 	data() {
 		return {
 			images: [] as ImageResult[],
-			totalImages: null,
+			totalImages: 0,
 		}
 	},
 	computed: {
 		...mapState(useFileStore, ['mainDirectory']),
 		mainDirectoryName() {
-			return this.mainDirectory ? this.mainDirectory.name : null
+			return this.mainDirectory ? this.mainDirectory.name : undefined
 		},
 	},
 	methods: {
 		async onSearchResult(results: ImageResult[]) {
 			this.images = results
 		},
-		updateTotalImageCount(dirName) {
+		updateTotalImageCount(dirName: string | undefined) {
 			if (dirName) {
 				this.$vectorDB.count(dirName).then((c) => (this.totalImages = c))
 			} else {
@@ -57,7 +57,7 @@ export default defineComponent({
 		},
 	},
 	watch: {
-		mainDirectoryName(newName) {
+		mainDirectoryName(newName: string | undefined) {
 			this.updateTotalImageCount(newName)
 		},
 	},

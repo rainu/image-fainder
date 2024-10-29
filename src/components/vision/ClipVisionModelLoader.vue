@@ -36,12 +36,12 @@ export default defineComponent({
 	methods: {
 		...mapActions(useAiStore, ['setVisionModel']),
 		async load() {
-			if (this.modelValue) {
+			if (this.visionModel) {
 				this.progress = 100
 				return
 			}
 			const model = await CLIPVisionModelWithProjection.from_pretrained(this.modelName, {
-				progress_callback: (progress) => {
+				progress_callback: (progress: { progress: number }) => {
 					if (progress.progress) {
 						this.progress = progress.progress
 					}

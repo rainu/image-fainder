@@ -36,12 +36,12 @@ export default defineComponent({
 	methods: {
 		...mapActions(useAiStore, ['setTextModel']),
 		async load() {
-			if (this.modelValue) {
+			if (this.textModel) {
 				this.progress = 100
 				return
 			}
 			const model = await CLIPTextModelWithProjection.from_pretrained(this.modelName, {
-				progress_callback: (progress) => {
+				progress_callback: (progress: { progress: number }) => {
 					if (progress.progress) {
 						this.progress = progress.progress
 					}

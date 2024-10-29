@@ -1,12 +1,12 @@
-import { NavigationGuardNext, RouteLocationNormalized } from 'vue-router'
+import { NavigationGuardNext, NavigationGuardWithThis, RouteLocationNormalized } from "vue-router"
 import { useFileStore } from "../../store/file.ts"
 import { RouteHome } from "../index.ts"
 
-export function directoryMiddleware(
-	to: RouteLocationNormalized,
-	from: RouteLocationNormalized,
+export const directoryMiddleware: NavigationGuardWithThis<undefined> = (
+	_to: RouteLocationNormalized,
+	_from: RouteLocationNormalized,
 	next: NavigationGuardNext,
-) {
+) => {
 	const fileStore = useFileStore()
 	if (fileStore.mainDirectory) {
 		next()

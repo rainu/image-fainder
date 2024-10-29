@@ -6,7 +6,7 @@
 			</v-btn>
 		</template>
 
-		<template v-slot:default="{ isActive }">
+		<template v-slot:default>
 			<v-card title="GPU info">
 				<v-list>
 					<v-list-item v-for="([icon, key, value]) in gpuInfo" :key="key" :prepend-icon="icon" density="compact">
@@ -59,9 +59,9 @@ export default defineComponent({
 				return 'info'
 			}
 		},
-		gpuInfo() {
-			if (this.device.type !== 'webgpu') {
-				return null
+		gpuInfo(): [string, string, string | string[]][] {
+			if (this.device.type !== 'webgpu' || !this.device.gpu.adapter) {
+				return []
 			}
 
 			const features = [] as string[]

@@ -1,7 +1,7 @@
 <template>
 	<v-container v-show="progress !== 100">
 		<v-row align-content="center" justify="center" dense>
-			<v-col cols="12" class="text-subtitle-1 text-center">Loading tokenizer </v-col>
+			<v-col cols="12" class="text-subtitle-1 text-center">Loading tokenizer</v-col>
 			<v-col cols="10">
 				<ProgressBar :current="progress" :total="100" hide-steps />
 			</v-col>
@@ -31,7 +31,7 @@ export default defineComponent({
 		}
 	},
 	computed: {
-		...mapState(useAiStore, ['tokenizer', 'device']),
+		...mapState(useAiStore, ['tokenizer']),
 	},
 	methods: {
 		...mapActions(useAiStore, ['setTokenizer']),
@@ -41,12 +41,11 @@ export default defineComponent({
 				return
 			}
 			const tokenizer = await AutoTokenizer.from_pretrained(this.modelName, {
-				progress_callback: (progress) => {
+				progress_callback: (progress: { progress: number }) => {
 					if (progress.progress) {
 						this.progress = progress.progress
 					}
 				},
-				device: this.device.type,
 			})
 			this.progress = 100
 			this.setTokenizer(tokenizer)

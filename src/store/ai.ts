@@ -1,11 +1,10 @@
 import { defineStore } from 'pinia'
 import { PreTrainedModel, PreTrainedTokenizer, Processor } from '@huggingface/transformers'
-import { DeviceType } from '@huggingface/transformers/types/utils/devices'
 
 export const useAiStore = defineStore('ai', {
 	state: () => ({
 		device: {
-			type: 'auto' as DeviceType,
+			type: 'auto' as 'auto' | 'webgpu' | 'cpu',
 			gpu: {
 				adapter: null as GPUAdapter | null,
 				device: null as GPUDevice | null,

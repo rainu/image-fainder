@@ -80,7 +80,7 @@ export default defineComponent({
 			return this.limit || this.search.itemsPerPage
 		},
 		columnCount() {
-			switch (this.$vuetify.display.name) {
+			switch (String(this.$vuetify.display.name)) {
 				case 'xs':
 					return 1
 				case 'sm':
@@ -109,7 +109,7 @@ export default defineComponent({
 		end() {
 			return Math.min(this.start + this.limitToUse, this.view.length)
 		},
-		displayItems(): Promise<Image[]> {
+		displayItems(): Image[] {
 			if (!this.baseDir) return []
 
 			const imageItems = [] as Image[]
@@ -129,11 +129,11 @@ export default defineComponent({
 		},
 	},
 	methods: {
-		onClickImage(i) {
-			if (this.selected[i]) {
-				delete this.selected[i]
+		onClickImage(name: string) {
+			if (this.selected[name]) {
+				delete this.selected[name]
 			} else {
-				this.selected[i] = true
+				this.selected[name] = true
 			}
 		},
 		onDeleted(deleted: string[]) {

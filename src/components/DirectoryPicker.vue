@@ -7,7 +7,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { mapActions, mapState } from "pinia"
+import { mapActions, mapState } from 'pinia'
 import { useFileStore } from '../store/file.ts'
 
 export default defineComponent({
@@ -15,13 +15,13 @@ export default defineComponent({
 	emits: ['change'],
 	props: {
 		variant: {
-			type: String,
+			type: String as () => 'flat' | 'text' | 'elevated' | 'tonal' | 'outlined' | 'plain',
 			default: 'elevated',
 		},
 		color: {
 			type: String,
 			default: null,
-		}
+		},
 	},
 	computed: {
 		...mapState(useFileStore, ['mainDirectory']),

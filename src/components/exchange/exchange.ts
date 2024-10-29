@@ -11,7 +11,7 @@ type Entry = {
 }
 
 export const exportFile = async (
-	fileHandle,
+	fileHandle: FileSystemFileHandle,
 	vectorDB: VectorDatabase,
 	progressCallback: (c: number, t: number) => void,
 ) => {
@@ -19,7 +19,7 @@ export const exportFile = async (
 
 	const keys = await vectorDB.getKeys()
 
-	for (let k = 0, i = 0; k < keys.length; k++) {
+	for (let k = 0; k < keys.length; k++) {
 		const key = keys[k]
 		progressCallback(k, keys.length)
 
@@ -48,10 +48,10 @@ export const exportFile = async (
 	await writableStream.close()
 }
 
-const fileReader = (file) => ({
+const fileReader = (file: File) => ({
 	total: file.size,
 	offset: 0,
-	readNBytes(n: number) {
+	readNBytes(n: number): Promise<ArrayBuffer> {
 		const fileSlice = file.slice(this.offset, this.offset + n)
 		return new Promise((resolve, reject) => {
 			const reader = new FileReader()
@@ -84,7 +84,7 @@ const fileReader = (file) => ({
 })
 
 export const importFile = async (
-	fileHandle,
+	fileHandle: FileSystemFileHandle,
 	vectorDB: VectorDatabase,
 	progressCallback: (c: number, t: number) => void,
 ) => {

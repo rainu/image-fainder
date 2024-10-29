@@ -26,9 +26,9 @@ import { VectorEntry } from '../../database/vector'
 import AutoTokenizerLoader from './AutoTokenizerLoader.vue'
 import ClipTextModelLoader from './ClipTextModelLoader.vue'
 import ProgressBar from '../progress/Bar.vue'
-import ProgressDialog from "../progress/Dialog.vue"
-import { useSettingsStore } from "../../store/settings.ts"
-import { delayProgress } from "../progress/delayed.ts"
+import ProgressDialog from '../progress/Dialog.vue'
+import { useSettingsStore } from '../../store/settings.ts'
+import { delayProgress } from '../progress/delayed.ts'
 
 export interface ImageResult {
 	path: string
@@ -41,7 +41,7 @@ export default defineComponent({
 	props: {
 		directory: {
 			type: String,
-			required: false,
+			default: null,
 		},
 		similarityThreshold: {
 			type: Number,
@@ -53,8 +53,8 @@ export default defineComponent({
 		return {
 			searchTerm: '',
 			progress: {
-				total: null as Number | null,
-				current: null as Number | null,
+				total: 0,
+				current: 0,
 			},
 		}
 	},
@@ -70,6 +70,10 @@ export default defineComponent({
 	},
 	methods: {
 		async process() {
+			if (!this.tokenizer || !this.textModel) {
+				return
+			}
+
 			this.progress.total = await this.$vectorDB.count(this.directory)
 			this.progress.current = 0
 
@@ -83,7 +87,7 @@ export default defineComponent({
 
 			const delayedProgression = delayProgress((i) => (this.progress.current = i))
 			const process = (entry: VectorEntry): boolean => {
-				const similarity = cos_sim(text_embeds[0].data, entry.embedding)
+				const similarity = cos_sim(text_embeds[0].data, Array.from(entry.embedding))
 
 				if (similarity >= this.similarityThresholdToUse) {
 					candidates.push({

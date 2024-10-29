@@ -45,7 +45,7 @@ export default defineComponent({
 				try {
 					const file = await this.baseDir.getFileHandle(this.name)
 					this.url = URL.createObjectURL(await file.getFile())
-				} catch (e) {
+				} catch (e: Error) {
 					if (e.name !== 'NotFoundError') {
 						console.error(e)
 					}

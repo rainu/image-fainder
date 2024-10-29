@@ -1,11 +1,11 @@
-import { NavigationGuardNext, RouteLocationNormalized } from 'vue-router'
+import { NavigationGuardNext, NavigationGuardWithThis, RouteLocationNormalized } from "vue-router"
 import { RouteUnsupported } from "../index.ts"
 
-export function supportMiddleware(
-	to: RouteLocationNormalized,
-	from: RouteLocationNormalized,
+export const supportMiddleware: NavigationGuardWithThis<undefined> = (
+	_to: RouteLocationNormalized,
+	_from: RouteLocationNormalized,
 	next: NavigationGuardNext,
-) {
+) => {
 
 	const fail = (reason: string) => {
 		next({ name: RouteUnsupported, query: { reason: reason } })

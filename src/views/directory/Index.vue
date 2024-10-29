@@ -8,7 +8,7 @@ import { useFileStore } from '../../store/file.ts'
 
 export default defineComponent({
 	beforeMount() {
-		const name = useFileStore().mainDirectory?.name
+		const name = useFileStore().mainDirectory?.name || null
 		this.$vectorDB.count(name).then((c) => {
 			if(c > 0) {
 				console.log("goto search")

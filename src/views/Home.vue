@@ -14,7 +14,7 @@ import { RouteDirectory } from "../router"
 export default defineComponent({
 	components: { DirectoryPicker },
 	methods: {
-		onChange(dirHandle: FileSystemDirectoryHandle) {
+		onChange(_dirHandle: FileSystemDirectoryHandle) {
 			this.$router.push({ name: RouteDirectory })
 		},
 	},

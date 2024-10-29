@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia'
-import { PreTrainedModel, PreTrainedTokenizer, Processor } from '@huggingface/transformers'
 
 export const useFileStore = defineStore('file', {
 	state: () => ({

@@ -1,46 +1,59 @@
+import { App, Plugin } from 'vue'
+declare const __PROJECT_NAME__: string
+
 const vectorStoreName = 'vector'
 const dirIndexName = 'directorIdx'
 const pathIndexName = 'pathIdx'
 
 export type VectorEntryKey = IDBValidKey
 export type VectorEntry = {
-	id: VectorEntryKey
+	id?: VectorEntryKey
 	directory: string
 	path: string
 	embedding: Float32Array
 }
+export type PersistedVectorEntry = {
+	id: VectorEntryKey
+} & VectorEntry
 
 export interface VectorDatabase {
 	count(directory: string | null): Promise<number>
 
-	getKeys(): Promise<[VectorEntryKey]>
+	getKeys(): Promise<VectorEntryKey[]>
 
-	getByKey(key: VectorEntryKey): Promise<VectorEntry>
+	getByKey(key: VectorEntryKey): Promise<PersistedVectorEntry>
 
-	getByPath(path: string): Promise<VectorEntry>
+	getByPath(path: string): Promise<PersistedVectorEntry>
 
 	exists(path: string): Promise<boolean>
 
-	iterate(directory: string | null, clb: (e: VectorEntry) => boolean): Promise<void>
+	iterate(directory: string | null, clb: (e: PersistedVectorEntry) => boolean): Promise<void>
 
 	save(entry: VectorEntry): Promise<void>
 
 	delete(key: VectorEntryKey): Promise<void>
 }
 
+declare module '@vue/runtime-core' {
+	interface ComponentCustomProperties {
+		$vectorDB: VectorDatabase
+	}
+}
+
 export function createVectorDatabase(): Promise<Plugin> {
 	const handle = (database: IDBDatabase): VectorDatabase => ({
 		count(directory: string | null): Promise<number> {
-			let req = database.transaction(vectorStoreName, 'readonly').objectStore(vectorStoreName)
+			const store = database.transaction(vectorStoreName, 'readonly').objectStore(vectorStoreName)
 
+			let req: IDBRequest<number>;
 			if (directory) {
-				req = req.index(dirIndexName).count(directory)
+				req = store.index(dirIndexName).count(directory)
 			} else {
-				req = req.count()
+				req = store.count()
 			}
 
 			return new Promise((resolve, reject) => {
-				req.onsuccess = (e) => resolve(e.target.result)
+				req.onsuccess = () => resolve(req.result)
 				req.onerror = reject
 			})
 		},
@@ -52,27 +65,28 @@ export function createVectorDatabase(): Promise<Plugin> {
 				.count(path)
 
 			return new Promise((resolve, reject) => {
-				req.onsuccess = (e) => resolve(!!e.target.result)
+				req.onsuccess = () => resolve(!!req.result)
 				req.onerror = reject
 			})
 		},
-		iterate(directory: string | null, clb: (e: VectorEntry) => boolean): Promise<void> {
-			let req = database.transaction(vectorStoreName, 'readonly').objectStore(vectorStoreName)
+		iterate(directory: string | null, clb: (e: PersistedVectorEntry) => boolean): Promise<void> {
+			const store = database.transaction(vectorStoreName, 'readonly').objectStore(vectorStoreName)
 
+			let req: IDBRequest<IDBCursorWithValue | null>
 			if (directory) {
-				req = req.index(dirIndexName).openCursor(IDBKeyRange.only(directory))
+				req = store.index(dirIndexName).openCursor(IDBKeyRange.only(directory))
 			} else {
-				req = req.openCursor()
+				req = store.openCursor()
 			}
 
 			return new Promise((resolve, reject) => {
-				req.onsuccess = (e) => {
-					const cursor = e.target.result as IDBCursorWithValue
+				req.onsuccess = () => {
+					const cursor = req.result as IDBCursorWithValue
 					if (cursor) {
 						const shouldContinue = clb({
 							id: cursor.primaryKey,
 							...cursor.value,
-						} as VectorEntry)
+						} as PersistedVectorEntry)
 						if (shouldContinue) {
 							cursor.continue()
 						}
@@ -83,27 +97,27 @@ export function createVectorDatabase(): Promise<Plugin> {
 				req.onerror = reject
 			})
 		},
-		getKeys(): Promise<[VectorEntryKey]> {
+		getKeys(): Promise<VectorEntryKey[]> {
 			const req = database.transaction(vectorStoreName, 'readonly').objectStore(vectorStoreName).getAllKeys()
 
 			return new Promise((resolve, reject) => {
-				req.onsuccess = (e) => resolve(e.target.result)
+				req.onsuccess = () => resolve(req.result)
 				req.onerror = reject
 			})
 		},
-		getByKey(key: VectorEntryKey): Promise<VectorEntry> {
+		getByKey(key: VectorEntryKey): Promise<PersistedVectorEntry> {
 			const req = database.transaction(vectorStoreName, 'readonly').objectStore(vectorStoreName).get(key)
 
 			return new Promise((resolve, reject) => {
-				req.onsuccess = (e) =>
+				req.onsuccess = () =>
 					resolve({
 						id: key,
-						...e.target.result,
+						...req.result,
 					})
 				req.onerror = reject
 			})
 		},
-		getByPath(path: string): Promise<VectorEntry> {
+		getByPath(path: string): Promise<PersistedVectorEntry> {
 			const req = database
 				.transaction(vectorStoreName, 'readonly')
 				.objectStore(vectorStoreName)
@@ -111,9 +125,9 @@ export function createVectorDatabase(): Promise<Plugin> {
 				.getKey(path)
 
 			return new Promise((resolve, reject) => {
-				req.onsuccess = async (e) => {
+				req.onsuccess = async () => {
 					try {
-						resolve(await this.getByKey(e.target.result as VectorEntryKey))
+						resolve(await this.getByKey(req.result as VectorEntryKey))
 					} catch (e) {
 						reject(e)
 					}
@@ -125,7 +139,7 @@ export function createVectorDatabase(): Promise<Plugin> {
 			const req = database.transaction(vectorStoreName, 'readwrite').objectStore(vectorStoreName).delete(key)
 
 			return new Promise((resolve, reject) => {
-				req.onsuccess = (e) => resolve()
+				req.onsuccess = () => resolve()
 				req.onerror = reject
 			})
 		},
@@ -133,7 +147,7 @@ export function createVectorDatabase(): Promise<Plugin> {
 			const req = database.transaction(vectorStoreName, 'readwrite').objectStore(vectorStoreName).put(entry)
 
 			return new Promise((resolve, reject) => {
-				req.onsuccess = (e) => resolve()
+				req.onsuccess = () => resolve()
 				req.onerror = reject
 			})
 		},
@@ -143,8 +157,8 @@ export function createVectorDatabase(): Promise<Plugin> {
 		const req = window.indexedDB.open(__PROJECT_NAME__, 1)
 
 		req.onerror = reject
-		req.onupgradeneeded = (event) => {
-			const db = event.target.result as IDBDatabase
+		req.onupgradeneeded = () => {
+			const db = req.result
 
 			const vectorStore = db.createObjectStore(vectorStoreName, {
 				autoIncrement: true,
@@ -152,8 +166,8 @@ export function createVectorDatabase(): Promise<Plugin> {
 			vectorStore.createIndex(pathIndexName, 'path', { unique: true })
 			vectorStore.createIndex(dirIndexName, 'directory', { unique: false })
 		}
-		req.onsuccess = (event) => {
-			const db = event.target.result as IDBDatabase
+		req.onsuccess = () => {
+			const db = req.result as IDBDatabase
 			resolve({
 				install(app: App) {
 					app.config.globalProperties.$vectorDB = handle(db)

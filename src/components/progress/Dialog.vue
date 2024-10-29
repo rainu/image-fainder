@@ -21,11 +21,11 @@ export default defineComponent({
 		},
 		current: {
 			type: Number,
-			required: false,
+			default: 0,
 		},
 		total: {
 			type: Number,
-			required: false,
+			default: 0,
 		},
 		hideSteps: {
 			type: Boolean,

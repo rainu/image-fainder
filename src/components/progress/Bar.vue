@@ -1,5 +1,5 @@
 <template>
-	<v-progress-linear v-if="total > 0" v-model="current" :max="total" height="36" color="primary">
+	<v-progress-linear v-if="!total || total > 0" v-model="current" :max="total" height="36" color="primary">
 		<strong>
 			<template v-if="!hideSteps">
 				<span>{{ current }}</span>
@@ -24,11 +24,11 @@ export default defineComponent({
 	props: {
 		current: {
 			type: Number,
-			required: false,
+			default: 0,
 		},
 		total: {
 			type: Number,
-			required: false,
+			default: 0,
 		},
 		hideSteps: {
 			type: Boolean,
@@ -42,7 +42,7 @@ export default defineComponent({
 	data() {
 		return {
 			t: new Date().getTime(),
-			avgDuration: null as Number | null,
+			avgDuration: 0,
 		}
 	},
 	computed: {
