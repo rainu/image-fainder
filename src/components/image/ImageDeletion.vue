@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<v-btn @click="showDialog = true" color="error" variant="elevated" block v-show="fileNames.length > 0">
+		<v-btn @click="showDialog = true" color="error" variant="elevated" block v-show="images.length > 0">
 			<v-icon icon="mdi-delete"></v-icon>
 			Delete selected
 		</v-btn>
@@ -12,12 +12,12 @@
 					<v-card-text v-show="progress.total === 0">
 						<v-row dense>
 							<v-col cols="12" class="image-container" :style="`column-count: ${columnCount};`">
-								<div v-for="name in fileNames" :key="name" @click="onClickImage(name)" class="cursor-pointer">
+								<div v-for="image in images" :key="image.uri.rawURI" @click="onClickImage(image.uri.rawURI)" class="cursor-pointer">
 									<ImageItem
 										:base-dir="baseDir"
-										:name="name"
+										:image="image"
 										style="margin-bottom: 0.5em"
-										:class="selected[name] ? 'image-selected border-lg' : ''"
+										:class="selected[image.uri.rawURI] ? 'image-selected border-lg' : ''"
 									/>
 								</div>
 							</v-col>
@@ -47,9 +47,10 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import ImageItem from './ImageItem.vue'
+import ImageItem, { Image } from "./ImageItem.vue"
 import ProgressBar from '../progress/Bar.vue'
 import { delayProgress } from "../progress/delayed.ts"
+import { URI } from "../../database/uri.ts"
 
 export default defineComponent({
 	name: 'ImageDeletion',
@@ -60,8 +61,8 @@ export default defineComponent({
 			type: Object as () => FileSystemDirectoryHandle,
 			required: true,
 		},
-		fileNames: {
-			type: Array as () => string[],
+		images: {
+			type: Array as () => Image[],
 			required: true,
 		},
 	},
@@ -72,7 +73,7 @@ export default defineComponent({
 				current: 0,
 				total: 0,
 			},
-			selected: {} as { [key: string]: boolean },
+			selected: {} as Record<URI, boolean>,
 		}
 	},
 	computed: {
@@ -92,23 +93,23 @@ export default defineComponent({
 			return 4
 		},
 		toDelete() {
-			return this.fileNames.filter((name) => !this.selected[name])
+			return this.images.filter((image) => !this.selected[image.uri.rawURI])
 		},
 	},
 	methods: {
-		onClickImage(name: string) {
-			if (this.selected[name]) {
-				delete this.selected[name]
+		onClickImage(uri: URI) {
+			if (this.selected[uri]) {
+				delete this.selected[uri]
 			} else {
-				this.selected[name] = true
+				this.selected[uri] = true
 			}
 		},
-		async deleteDatabaseEntry(fileName: string) {
-			const dbEntry = await this.$vectorDB.getByPath(this.baseDir.name + '/' + fileName)
+		async deleteDatabaseEntry(image: Image) {
+			const dbEntry = await this.$vectorDB.getByURI(image.uri.rawURI)
 			await this.$vectorDB.delete(dbEntry.id)
 		},
-		async deleteFile(fileName: string) {
-			const file = await this.baseDir.getFileHandle(fileName)
+		async deleteFile(image: Image) {
+			const file = await this.baseDir.getFileHandle(image.uri.name)
 			await file.remove()
 		},
 		async deleteSelected() {
@@ -117,15 +118,15 @@ export default defineComponent({
 
 			const delayedProgression = delayProgress((i) => (this.progress.current = i))
 			try {
-				for (let fileName of this.toDelete) {
+				for (let image of this.toDelete) {
 					try {
-						await this.deleteDatabaseEntry(fileName)
+						await this.deleteDatabaseEntry(image)
 					} catch (e) {
 						console.warn(e)
 					}
 
 					try {
-						await this.deleteFile(fileName)
+						await this.deleteFile(image)
 					} catch (e) {
 						console.warn(e)
 					}

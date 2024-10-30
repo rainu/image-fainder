@@ -1,7 +1,8 @@
 import { VectorDatabase } from '../../database/vector.ts'
+import { parseURI } from "../../database/uri.ts"
 
 type MetaData = {
-	f: string
+	u: string
 	d: number
 }
 
@@ -45,7 +46,7 @@ export const exportFile = async (
 		}
 
 		const meta: MetaData = {
-			f: item.path,
+			u: item.uri,
 			d: item.embedding.length,
 		}
 		const json = JSON.stringify(meta)
@@ -85,12 +86,18 @@ const fileReader = (file: File) => ({
 	},
 	async readNext(version: number): Promise<Entry> {
 		// version -> parser-function
-		const parser = {
+		const parser: Record<number, () => Promise<Entry>> = {
 			1: async (): Promise<Entry> => {
-				const meta = (await this.readNextJson()) as MetaData
+				const meta = (await this.readNextJson()) as {
+					f: string
+					d: number
+				}
 				const raw = await this.readNBytes(meta.d * 4)
 				return {
-					Meta: meta,
+					Meta: {
+						u: `file://` + meta.f,
+						d: meta.d,
+					},
 					Embedding: new Float32Array(raw),
 				}
 			},
@@ -125,13 +132,18 @@ export const importFile = async (
 			break
 		}
 
-		if (await vectorDB.exists(entry.Meta.f)) {
-			const persisted = await vectorDB.getByPath(entry.Meta.f)
+		if (await vectorDB.exists(entry.Meta.u)) {
+			const persisted = await vectorDB.getByURI(entry.Meta.u)
 			await vectorDB.delete(persisted.id)
 		}
+		const parsedURI = parseURI(entry.Meta.u)
+		if (parsedURI === null) {
+			throw new Error('Unknown URI type')
+		}
+
 		await vectorDB.save({
-			directory: entry.Meta.f.split('/')[0],
-			path: entry.Meta.f,
+			collection: parsedURI.directory,
+			uri: entry.Meta.u,
 			embedding: entry.Embedding,
 		})
 	}

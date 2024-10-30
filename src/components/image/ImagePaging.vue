@@ -8,12 +8,12 @@
 
 		<v-row dense>
 			<v-col cols="12" class="image-container" :style="`column-count: ${columnCount};`">
-				<div v-for="image in displayItems" :key="image.name" @click="onClickImage(image.name)" class="cursor-pointer">
+				<div v-for="image in displayItems" :key="image.uri.rawURI" @click="onClickImage(image.uri.rawURI)" class="cursor-pointer">
 					<ImageItem
 						:base-dir="baseDir"
-						:name="image.name"
+						:image="image"
 						style="margin-bottom: 1em"
-						:class="selected[image.name] ? 'image-selected border-lg' : ''"
+						:class="selected[image.uri.rawURI] ? 'image-selected border-lg' : ''"
 					>
 						<span v-if="search.showSimilarity" class="text-caption">
 							{{ image.similarity }}
@@ -29,12 +29,12 @@
 			</v-container>
 		</v-app-bar>
 
-		<v-app-bar location="bottom" elevation="0" v-if="selectedPaths.length > 0" density="compact">
+		<v-app-bar location="bottom" elevation="0" v-if="selectedImages.length > 0" density="compact">
 			<v-container>
 				<v-row>
-					<v-col cols="8"></v-col>
-					<v-col cols="4">
-						<ImageDeletion :base-dir="baseDir" :file-names="selectedPaths" @onDeleted="onDeleted" />
+					<v-col cols="6" sm="8"></v-col>
+					<v-col cols="6" sm="4">
+						<ImageDeletion :base-dir="baseDir" :images="selectedImages" @onDeleted="onDeleted" />
 					</v-col>
 				</v-row>
 			</v-container>
@@ -49,6 +49,7 @@ import { ImageResult } from '../text/TextEmbedding.vue'
 import ImageDeletion from './ImageDeletion.vue'
 import { mapState } from "pinia"
 import { useSettingsStore } from "../../store/settings.ts"
+import { URI } from "../../database/uri.ts"
 
 export default defineComponent({
 	name: 'ImagePaging',
@@ -70,8 +71,8 @@ export default defineComponent({
 	data() {
 		return {
 			page: 1,
-			selected: {} as { [key: string]: boolean },
-			deleted: {} as { [key: string]: boolean },
+			selected: {} as { [key: URI]: boolean },
+			deleted: {} as { [key: URI]: boolean },
 		}
 	},
 	computed: {
@@ -95,10 +96,7 @@ export default defineComponent({
 			return 1
 		},
 		view() {
-			return this.images.filter((i) => {
-				const name = i.path.substring(this.baseDir.name.length + 1)
-				return !this.deleted[name]
-			})
+			return this.images.filter((i) => !this.deleted[i.uri.rawURI])
 		},
 		pageCount() {
 			return Math.ceil(this.view.length / this.limitToUse)
@@ -114,32 +112,28 @@ export default defineComponent({
 
 			const imageItems = [] as Image[]
 			for (let result of this.view.slice(this.start, this.end)) {
-				if (result.path.startsWith(`${this.baseDir.name}/`)) {
-					const image = {
-						name: result.path.substring(this.baseDir.name.length + 1),
-						similarity: result.similarity,
-					}
-					imageItems.push(image)
+				if(result.uri.directory === this.baseDir.name) {
+					imageItems.push(result)
 				}
 			}
 			return imageItems
 		},
-		selectedPaths() {
-			return Object.keys(this.selected)
+		selectedImages(): Image[] {
+			return this.images.filter((i) => this.selected[i.uri.rawURI])
 		},
 	},
 	methods: {
-		onClickImage(name: string) {
-			if (this.selected[name]) {
-				delete this.selected[name]
+		onClickImage(uri: URI) {
+			if (this.selected[uri]) {
+				delete this.selected[uri]
 			} else {
-				this.selected[name] = true
+				this.selected[uri] = true
 			}
 		},
-		onDeleted(deleted: string[]) {
-			for (let path of deleted) {
-				this.deleted[path] = true
-				delete this.selected[path]
+		onDeleted(deleted: Image[]) {
+			for (let deletedImage of deleted) {
+				this.deleted[deletedImage.uri.rawURI] = true
+				delete this.selected[deletedImage.uri.rawURI]
 			}
 		},
 	},

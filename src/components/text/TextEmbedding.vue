@@ -29,9 +29,10 @@ import ProgressBar from '../progress/Bar.vue'
 import ProgressDialog from '../progress/Dialog.vue'
 import { useSettingsStore } from '../../store/settings.ts'
 import { delayProgress } from '../progress/delayed.ts'
+import { ParsedURI, parseURI } from "../../database/uri.ts"
 
 export interface ImageResult {
-	path: string
+	uri: ParsedURI
 	similarity: number
 }
 
@@ -91,7 +92,7 @@ export default defineComponent({
 
 				if (similarity >= this.similarityThresholdToUse) {
 					candidates.push({
-						path: entry.path,
+						uri: parseURI(entry.uri),
 						similarity,
 					} as ImageResult)
 				}

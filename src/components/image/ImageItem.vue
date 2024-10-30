@@ -10,9 +10,10 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
+import { ParsedURI } from "../../database/uri.ts"
 
 export interface Image {
-	name: string
+	uri: ParsedURI
 	similarity: number
 }
 
@@ -23,8 +24,8 @@ export default defineComponent({
 			type: FileSystemDirectoryHandle,
 			required: true,
 		},
-		name: {
-			type: String,
+		image: {
+			type: Object as () => Image,
 			required: true,
 		},
 		class: {
@@ -43,7 +44,7 @@ export default defineComponent({
 			immediate: true,
 			async handler() {
 				try {
-					const file = await this.baseDir.getFileHandle(this.name)
+					const file = await this.baseDir.getFileHandle(this.image.uri.name)
 					this.url = URL.createObjectURL(await file.getFile())
 				} catch (e: Error) {
 					if (e.name !== 'NotFoundError') {

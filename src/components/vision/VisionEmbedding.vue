@@ -23,6 +23,7 @@ import { useAiStore } from '../../store/ai.ts'
 import ProgressDialog from '../progress/Dialog.vue'
 import { delayProgress } from '../progress/delayed.ts'
 import { VectorEntryKey } from '../../database/vector.ts'
+import { localFileURI, parseURI } from "../../database/uri.ts"
 
 const validImageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.tiff']
 
@@ -84,7 +85,8 @@ export default defineComponent({
 						// remove directory name from file name
 						fileName.substring(this.directory.name.length + 1),
 					)
-					const exists = await this.$vectorDB.exists(fileName)
+					const fileUri = localFileURI(this.directory.name, file.name)
+					const exists = await this.$vectorDB.exists(fileUri)
 
 					if (!exists) {
 						files.push(file)
@@ -116,8 +118,8 @@ export default defineComponent({
 				const result = await this.visionModel(imageInputs)
 
 				await this.$vectorDB.save({
-					directory: this.directory.name,
-					path: `${this.directory.name}/${file.name}`,
+					collection: this.directory.name,
+					uri: localFileURI(this.directory.name, file.name),
 					embedding: result.image_embeds[0].data,
 				})
 
@@ -146,7 +148,14 @@ export default defineComponent({
 			const result = [] as VectorEntryKey[]
 			const delayedProgression = delayProgress((i) => (this.progress.current = i))
 			await this.$vectorDB.iterate(this.directory.name, (entry) => {
-				if (!fileNameMap[entry.path]) {
+				const parsedURI = parseURI(entry.uri)
+				if(parsedURI === null || parsedURI.type !== 'localFile') {
+					//skip non-local files
+					return true
+				}
+
+				const fileName = parsedURI.directory + "/" + parsedURI.name
+				if (!fileNameMap[fileName]) {
 					result.push(entry.id)
 				}
 				delayedProgression.add(1)

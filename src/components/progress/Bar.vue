@@ -1,5 +1,5 @@
 <template>
-	<v-progress-linear v-if="!total || total > 0" v-model="current" :max="total" height="36" color="primary">
+	<v-progress-linear v-if="total && total > 0" v-model="current" :max="total" height="36" color="primary">
 		<strong>
 			<template v-if="!hideSteps">
 				<span>{{ current }}</span>

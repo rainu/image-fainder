@@ -1,6 +1,6 @@
 declare global {
 	interface Window {
-		showDirectoryPicker: () => Promise<FileSystemDirectoryHandle>
+		showDirectoryPicker: (options?: { mode: 'read' | 'readwrite' }) => Promise<FileSystemDirectoryHandle>
 		showSaveFilePicker: (options?: SaveFilePickerOptions) => Promise<FileSystemFileHandle>
 		showOpenFilePicker: (options?: OpenFilePickerOptions) => Promise<FileSystemFileHandle[]>
 	}
@@ -23,6 +23,7 @@ declare global {
 		features: {
 			keys(): IterableIterator<string>
 		}
+
 		requestDevice(): Promise<GPUDevice>
 	}
 
