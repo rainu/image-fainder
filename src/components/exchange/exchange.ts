@@ -10,12 +10,26 @@ type Entry = {
 	Embedding: Float32Array
 }
 
+const magicNumber = 0x52494644	//ascii -> "RIFD"
+const version = 1
+
 export const exportFile = async (
 	fileHandle: FileSystemFileHandle,
 	vectorDB: VectorDatabase,
 	progressCallback: (c: number, t: number) => void,
 ) => {
 	const writableStream = await fileHandle.createWritable()
+
+	const writeNumber = async (n: number) => {
+		const arrayBuffer = new ArrayBuffer(4)
+		const dataView = new DataView(arrayBuffer)
+		dataView.setUint32(0, n, false) // true for big-endian
+		await writableStream.write(new Uint8Array(arrayBuffer))
+	}
+
+	//[magicNumber][version]
+	await writeNumber(magicNumber)
+	await writeNumber(version)
 
 	const keys = await vectorDB.getKeys()
 
@@ -36,12 +50,8 @@ export const exportFile = async (
 		}
 		const json = JSON.stringify(meta)
 
-		const jlb = new ArrayBuffer(4)
-		const jlbv = new DataView(jlb)
-		jlbv.setInt32(0, json.length, true) // true for little-endian
-
 		//[json-length][json][embedding]
-		await writableStream.write(new Uint8Array(jlb))
+		await writeNumber(json.length)
 		await writableStream.write(json)
 		await writableStream.write(buffer)
 	}
@@ -66,20 +76,27 @@ const fileReader = (file: File) => ({
 	async readNumber() {
 		const arrayBuffer = await this.readNBytes(4)
 		const dataView = new DataView(arrayBuffer)
-		return dataView.getInt32(0, true) // true for little-endian
+		return dataView.getInt32(0, false) // false for big-endian
 	},
 	async readNextJson() {
 		const jsonLength = await this.readNumber()
 		const json = await this.readNBytes(jsonLength)
 		return JSON.parse(new TextDecoder().decode(json))
 	},
-	async readNext(): Promise<Entry> {
-		const meta = (await this.readNextJson()) as MetaData
-		const raw = await this.readNBytes(meta.d * 4)
-		return {
-			Meta: meta,
-			Embedding: new Float32Array(raw),
+	async readNext(version: number): Promise<Entry> {
+		// version -> parser-function
+		const parser = {
+			1: async (): Promise<Entry> => {
+				const meta = (await this.readNextJson()) as MetaData
+				const raw = await this.readNBytes(meta.d * 4)
+				return {
+					Meta: meta,
+					Embedding: new Float32Array(raw),
+				}
+			},
 		}
+
+		return parser[version as keyof typeof parser]()
 	},
 })
 
@@ -89,13 +106,21 @@ export const importFile = async (
 	progressCallback: (c: number, t: number) => void,
 ) => {
 	const file = fileReader(await fileHandle.getFile())
+	const givenMagicNumber = await file.readNumber()
+	if (givenMagicNumber !== magicNumber) {
+		throw new Error('Invalid file format')
+	}
+	const fileVersion = await file.readNumber()
+	if (fileVersion > version) {
+		throw new Error('Invalid file version')
+	}
 
 	while (true) {
 		progressCallback(file.offset, file.total)
 
 		let entry
 		try {
-			entry = await file.readNext()
+			entry = await file.readNext(fileVersion)
 		} catch (e) {
 			break
 		}
