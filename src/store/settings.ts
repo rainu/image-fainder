@@ -5,6 +5,7 @@ const storePrefix = `${__PROJECT_NAME__}:settings:`
 const searchPrefix = `${storePrefix}:search:`
 
 const keyTheme = storePrefix + 'theme'
+const keyLocale = storePrefix + 'locale'
 const keyItemsPerPage = searchPrefix + 'itemsPerPage'
 const keySimilarityThreshold = searchPrefix + 'similarityThreshold'
 const keyShowSimilarity = searchPrefix + 'showSimilarity'
@@ -13,6 +14,7 @@ export const useSettingsStore = defineStore('settings', {
 	state: () => {
 		return {
 			theme: localStorage.getItem(keyTheme) || 'light',
+			locale: localStorage.getItem(keyLocale) || 'en',
 			search: {
 				itemsPerPage: Number.parseInt(localStorage.getItem(keyItemsPerPage) || '25'),
 				similarityThreshold: Number.parseFloat(localStorage.getItem(keySimilarityThreshold) || '0.1'),
@@ -28,6 +30,10 @@ export const useSettingsStore = defineStore('settings', {
 				this.theme = 'dark'
 			}
 			localStorage.setItem(keyTheme, this.theme)
+		},
+		setLocale(locale: string) {
+			this.locale = locale
+			localStorage.setItem(keyLocale, locale)
 		},
 		setItemsPerPage(value: number) {
 			this.search.itemsPerPage = value

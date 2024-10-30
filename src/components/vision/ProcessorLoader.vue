@@ -1,7 +1,7 @@
 <template>
 	<v-container v-show="progress !== 100">
 		<v-row align-content="center" justify="center" dense>
-			<v-col cols="12" class="text-subtitle-1 text-center">Loading processor </v-col>
+			<v-col cols="12" class="text-subtitle-1 text-center">{{ $t('processor.loading') }}</v-col>
 			<v-col cols="10">
 				<ProgressBar :current="progress" :total="100" hide-steps />
 			</v-col>

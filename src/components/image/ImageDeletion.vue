@@ -2,17 +2,22 @@
 	<div>
 		<v-btn @click="showDialog = true" color="error" variant="elevated" block v-show="images.length > 0">
 			<v-icon icon="mdi-delete"></v-icon>
-			Delete selected
+			{{ $t('image.deletion.action.delete.selected') }}
 		</v-btn>
 		<v-dialog v-model="showDialog">
 			<template v-slot:default="{ isActive }">
 				<v-card>
-					<v-card-title>Confirm deletion</v-card-title>
+					<v-card-title>{{ $t('image.deletion.action.delete.confirm.title') }}</v-card-title>
 
 					<v-card-text v-show="progress.total === 0">
 						<v-row dense>
 							<v-col cols="12" class="image-container" :style="`column-count: ${columnCount};`">
-								<div v-for="image in images" :key="image.uri.rawURI" @click="onClickImage(image.uri.rawURI)" class="cursor-pointer">
+								<div
+									v-for="image in images"
+									:key="image.uri.rawURI"
+									@click="onClickImage(image.uri.rawURI)"
+									class="cursor-pointer"
+								>
 									<ImageItem
 										:base-dir="baseDir"
 										:image="image"
@@ -29,12 +34,14 @@
 					<v-card-actions>
 						<v-row>
 							<v-col cols="6">
-								<v-btn @click="isActive.value = false" block variant="flat" color="secondary">Cancel </v-btn>
+								<v-btn @click="isActive.value = false" block variant="flat" color="secondary">
+									{{ $t('image.deletion.action.delete.confirm.cancel') }}
+								</v-btn>
 							</v-col>
 							<v-col cols="6">
 								<v-btn @click="deleteSelected" block variant="flat" color="red">
 									<v-icon icon="mdi-delete-alert"></v-icon>
-									Delete
+									{{ $t('image.deletion.action.delete.confirm.ok') }}
 								</v-btn>
 							</v-col>
 						</v-row>
@@ -47,10 +54,10 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import ImageItem, { Image } from "./ImageItem.vue"
+import ImageItem, { Image } from './ImageItem.vue'
 import ProgressBar from '../progress/Bar.vue'
-import { delayProgress } from "../progress/delayed.ts"
-import { URI } from "../../database/uri.ts"
+import { delayProgress } from '../progress/delayed.ts'
+import { URI } from '../../database/uri.ts'
 
 export default defineComponent({
 	name: 'ImageDeletion',

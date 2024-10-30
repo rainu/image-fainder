@@ -5,7 +5,7 @@
 			@click:append-inner="onSearch"
 			@keydown.enter.prevent="onSearch"
 			:disabled="progress.total > 0"
-			label="Search similar"
+			:label="$t('search.label')"
 			variant="solo"
 			single-line
 			hide-details
@@ -13,7 +13,7 @@
 			append-inner-icon="mdi-magnify"
 		>
 		</v-text-field>
-		<ProgressDialog title="Searching" :current="progress.current" :total="progress.total" />
+		<ProgressDialog :title="$t('search.progress.title')" :current="progress.current" :total="progress.total" />
 	</v-container>
 </template>
 

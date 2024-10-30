@@ -2,7 +2,7 @@
 	<div>
 		<v-btn @click="onClick" v-if="!progress.status" block color="primary">
 			<v-icon icon="mdi-file-import"></v-icon>
-			Import
+			{{ $t('exchange.import.title') }}
 		</v-btn>
 		<ProgressBar v-else :current="progress.current" :total="progress.total" hide-steps>
 			<span>{{ progress.currentItem }}</span>

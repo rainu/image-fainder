@@ -1,0 +1,101 @@
+{
+  "browser": {
+    "feature": {
+      "support": {
+        "missing": {
+          "indexedDB": "indexedDB not supported",
+          "reason": "Grund",
+          "showDirectoryPicker": "showDirectoryPicker not supported",
+          "title": "Der Browser wird aktuell nicht unterstützt."
+        }
+      }
+    }
+  },
+  "device": {
+    "gpu": {
+      "architecture": "Architektur",
+      "description": "Beschreibung",
+      "device": "Gerät",
+      "features": "Merkmale",
+      "title": "GPU Information",
+      "vendor": "Hersteller"
+    }
+  },
+  "exchange": {
+    "export": {
+      "title": "Export"
+    },
+    "import": {
+      "title": "Import"
+    }
+  },
+  "file": {
+    "directory": {
+      "choose": "Verzeichnis auswählen"
+    }
+  },
+  "landingpage": {
+    "title": "Start"
+  },
+  "model": {
+    "text": {
+      "loading": "Lade Textmodell"
+    },
+    "vision": {
+      "loading": "Lade Visionmodell"
+    }
+  },
+  "processor": {
+    "loading": "Lade Prozessor"
+  },
+  "progress": {
+    "duration": {
+      "average": {
+        "ms": "{duration}ms pro {unit}"
+      },
+      "unit": {
+        "image": "Bild"
+      }
+    }
+  },
+  "search": {
+    "label": "Ähnliche finden",
+    "progress": {
+      "title": "Suche"
+    },
+    "title": "Suchen"
+  },
+  "tokenizer": {
+    "loading": "Lade Tokenisierer"
+  },
+  "settings": {
+    "general": {
+      "language": "Sprache",
+      "theme": "Thema",
+      "title": "Allgemein"
+    },
+    "search": {
+      "ipp": "Elemente pro Seite",
+      "similarity": {
+        "show": "Ähnlichkeitswert anzeigen",
+        "threshold": "Ähnlichkeitsschwelle"
+      },
+      "title": "Suche"
+    }
+  },
+  "vision": {
+    "analyse": {
+      "action": "Analysiere Bilder",
+      "step": {
+        "1": "Schritt 1/4: Durchsuche Dateien",
+        "2": "Schritt 2/4: Analysiere unbekannte Bilder",
+        "3": "Schritt 3/4: Suche verwaiste Bilder",
+        "4": "Schritt 4/4: Lösche verwaiste Bilder"
+      },
+      "title": "Analysieren"
+    },
+    "analysed": {
+      "summary": "<strong>{total}</strong> analysierte Bilder in <strong>{collection}</strong> vorhanden!"
+    }
+  }
+}

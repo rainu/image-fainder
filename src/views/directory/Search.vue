@@ -11,11 +11,10 @@
 	</template>
 	<template v-else>
 		<v-container class="d-flex justify-center align-center">
-			<span v-if="totalImages !== null">
-				<strong>{{ totalImages }}</strong>
-				analysed images in
-				<strong>{{ mainDirectoryName }}</strong>
-				found!
+			<span
+				v-if="totalImages !== 0"
+				v-html="$t('vision.analysed.summary', { total: totalImages, collection: mainDirectoryName })"
+			>
 			</span>
 		</v-container>
 	</template>

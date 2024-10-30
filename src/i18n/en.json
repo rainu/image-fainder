@@ -1,0 +1,115 @@
+{
+  "browser": {
+    "feature": {
+      "support": {
+        "missing": {
+          "indexedDB": "indexedDB not supported",
+          "reason": "Reason",
+          "showDirectoryPicker": "showDirectoryPicker not supported",
+          "title": "Your browser is currently not supported."
+        }
+      }
+    }
+  },
+  "device": {
+    "gpu": {
+      "architecture": "Architecture",
+      "description": "Description",
+      "device": "Device",
+      "features": "Features",
+      "title": "GPU info",
+      "vendor": "Vendor"
+    }
+  },
+  "exchange": {
+    "export": {
+      "title": "Export"
+    },
+    "import": {
+      "title": "Import"
+    }
+  },
+  "file": {
+    "directory": {
+      "choose": "Choose directory"
+    }
+  },
+  "image": {
+    "deletion": {
+      "action": {
+        "delete": {
+          "confirm": {
+            "cancel": "Cancel",
+            "ok": "Delete",
+            "title": "Confirm deletion"
+          },
+          "selected": "Delete selected"
+        }
+      }
+    }
+  },
+  "landingpage": {
+    "title": "Home"
+  },
+  "model": {
+    "text": {
+      "loading": "Loading text model"
+    },
+    "vision": {
+      "loading": "Loading vision model"
+    }
+  },
+  "processor": {
+    "loading": "Loading processor"
+  },
+  "progress": {
+    "duration": {
+      "average": {
+        "ms": "{duration}ms per {unit}"
+      },
+      "unit": {
+        "image": "image"
+      }
+    }
+  },
+  "search": {
+    "label": "Search similar",
+    "progress": {
+      "title": "Searching"
+    },
+    "title": "Search"
+  },
+  "settings": {
+    "general": {
+      "language": "Language",
+      "theme": "Theme",
+      "title": "General"
+    },
+    "search": {
+      "ipp": "Items per page",
+      "similarity": {
+        "show": "Show similarity",
+        "threshold": "Similarity threshold"
+      },
+      "title": "Search"
+    }
+  },
+  "tokenizer": {
+    "loading": "Loading tokenizer"
+  },
+  "vision": {
+    "analyse": {
+      "action": "Analyse Images",
+      "step": {
+        "1": "Step 1/4: Scanning files",
+        "2": "Step 2/4: Analyse unknown images",
+        "3": "Step 3/4: Detect orphaned images",
+        "4": "Step 4/4: Delete orphaned images"
+      },
+      "title": "Analyse"
+    },
+    "analysed": {
+      "summary": "<strong>{total}</strong> analysed images in <strong>{collection}</strong> found!"
+    }
+  }
+}

@@ -7,13 +7,13 @@
 		</template>
 
 		<template v-slot:default>
-			<v-card title="GPU info">
+			<v-card :title="$t('device.gpu.title')">
 				<v-list>
 					<v-list-item v-for="([icon, key, value]) in gpuInfo" :key="key" :prepend-icon="icon" density="compact">
 						<template v-if="Array.isArray(value)">
 							<v-list-group :value="key" fluid>
 								<template v-slot:activator="{ props }">
-									<v-list-item v-bind="props" :title="key" ></v-list-item>
+									<v-list-item v-bind="props" :title="$t('device.gpu.' + key)" ></v-list-item>
 								</template>
 
 								<v-list-item v-for="(item, index) of value" :key="index" prepend-icon="mdi-circle-small" density="compact">
@@ -22,7 +22,7 @@
 							</v-list-group>
 						</template>
 						<template v-else>
-							<v-list-item-title>{{ key }}</v-list-item-title>
+							<v-list-item-title>{{ $t('device.gpu.' + key) }}</v-list-item-title>
 							<v-list-item-subtitle>{{ value }}</v-list-item-subtitle>
 						</template>
 					</v-list-item>
@@ -71,11 +71,11 @@ export default defineComponent({
 			features.sort((a, b) => a.localeCompare(b))
 
 			return [
-				['mdi-wrench', 'Architecture', this.device.gpu.adapter.info.architecture || 'unknown'],
-				['mdi-label', 'Description', this.device.gpu.adapter.info.description || '-'],
-				['mdi-expansion-card-variant', 'Device', this.device.gpu.adapter.info.device || 'unknown'],
-				['mdi-domain', 'Vendor', this.device.gpu.adapter.info.vendor || 'unknown'],
-				['mdi-star-circle-outline', 'Features', features],
+				['mdi-wrench', 'architecture', this.device.gpu.adapter.info.architecture || 'unknown'],
+				['mdi-label', 'description', this.device.gpu.adapter.info.description || '-'],
+				['mdi-expansion-card-variant', 'device', this.device.gpu.adapter.info.device || 'unknown'],
+				['mdi-domain', 'vendor', this.device.gpu.adapter.info.vendor || 'unknown'],
+				['mdi-star-circle-outline', 'features', features],
 			]
 		},
 	},

@@ -2,7 +2,7 @@
 	<div>
 		<v-btn @click="onClick" v-if="!progress.status" block color="primary">
 			<v-icon icon="mdi-file-export"></v-icon>
-			Export
+			{{ $t('exchange.export.title') }}
 		</v-btn>
 
 		<ProgressBar v-else :current="progress.current" :total="progress.total" />
@@ -13,7 +13,7 @@
 import { defineComponent } from 'vue'
 import { exportFile } from './exchange'
 import ProgressBar from '../progress/Bar.vue'
-import { delayProgress } from "../progress/delayed.ts"
+import { delayProgress } from '../progress/delayed.ts'
 
 export default defineComponent({
 	name: 'FileExporter',

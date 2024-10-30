@@ -11,7 +11,7 @@
 
 			<span>&nbsp;{{ Math.ceil((current * 100) / total) }}%</span>
 			<span v-if="eta">&nbsp;- {{ eta }}</span>
-			<span v-if="avgDuration" v-show="unit"> &nbsp;- {{ avgDuration.toFixed(2) }}ms per {{ unit }} </span>
+			<span v-if="avgDuration" v-show="unit"> &nbsp;- {{ $t('progress.duration.average.ms', { duration: avgDuration.toFixed(2), unit }) }}</span>
 		</strong>
 	</v-progress-linear>
 </template>

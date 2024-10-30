@@ -29,7 +29,7 @@ export default defineComponent({
 			if (this.mainDirectory?.name) {
 				return this.mainDirectory.name
 			} else {
-				return 'Choose Directory'
+				return this.$t('file.directory.choose')
 			}
 		},
 	},

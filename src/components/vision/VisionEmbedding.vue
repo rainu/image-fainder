@@ -6,9 +6,15 @@
 		<template v-if="directory">
 			<v-btn v-if="!progress.doing" @click="onClick" :disabled="!isLoaded" color="primary" block>
 				<v-icon icon="mdi-file-eye"></v-icon>
-				Analyse Images
+				{{ $t('vision.analyse.action') }}
 			</v-btn>
-			<ProgressDialog v-else :title="progress.title" :current="progress.current" :total="progress.total" unit="image" />
+			<ProgressDialog
+				v-else
+				:title="progress.title"
+				:current="progress.current"
+				:total="progress.total"
+				:unit="$t('progress.duration.unit.image')"
+			/>
 		</template>
 	</div>
 </template>
@@ -23,7 +29,7 @@ import { useAiStore } from '../../store/ai.ts'
 import ProgressDialog from '../progress/Dialog.vue'
 import { delayProgress } from '../progress/delayed.ts'
 import { VectorEntryKey } from '../../database/vector.ts'
-import { localFileURI, parseURI } from "../../database/uri.ts"
+import { localFileURI, parseURI } from '../../database/uri.ts'
 
 const validImageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.tiff']
 
@@ -74,7 +80,7 @@ export default defineComponent({
 
 			const files = []
 
-			this.progress.title = 'Step 1/4: Scanning files'
+			this.progress.title = this.$t('vision.analyse.step.1')
 			this.progress.total = fileNames.length
 			this.progress.current = 0
 
@@ -105,7 +111,7 @@ export default defineComponent({
 				return
 			}
 
-			this.progress.title = 'Step 2/4: Analyse unknown images'
+			this.progress.title = this.$t('vision.analyse.step.2')
 			this.progress.total = files.length
 			this.progress.current = 0
 
@@ -136,7 +142,7 @@ export default defineComponent({
 				return []
 			}
 
-			this.progress.title = 'Step 3/4: Detect orphaned images'
+			this.progress.title = this.$t('vision.analyse.step.3')
 			this.progress.total = count
 			this.progress.current = 0
 
@@ -149,12 +155,12 @@ export default defineComponent({
 			const delayedProgression = delayProgress((i) => (this.progress.current = i))
 			await this.$vectorDB.iterate(this.directory.name, (entry) => {
 				const parsedURI = parseURI(entry.uri)
-				if(parsedURI === null || parsedURI.type !== 'localFile') {
+				if (parsedURI === null || parsedURI.type !== 'localFile') {
 					//skip non-local files
 					return true
 				}
 
-				const fileName = parsedURI.directory + "/" + parsedURI.name
+				const fileName = parsedURI.directory + '/' + parsedURI.name
 				if (!fileNameMap[fileName]) {
 					result.push(entry.id)
 				}
@@ -170,7 +176,7 @@ export default defineComponent({
 				return
 			}
 
-			this.progress.title = 'Step 4/4: Delete orphaned images'
+			this.progress.title = this.$t('vision.analyse.step.4')
 			this.progress.total = keys.length
 			this.progress.current = 0
 
@@ -182,7 +188,7 @@ export default defineComponent({
 			}
 		},
 		async process() {
-			if(!this.directory) {
+			if (!this.directory) {
 				return
 			}
 
