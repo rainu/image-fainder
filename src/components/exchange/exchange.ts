@@ -88,16 +88,10 @@ const fileReader = (file: File) => ({
 		// version -> parser-function
 		const parser: Record<number, () => Promise<Entry>> = {
 			1: async (): Promise<Entry> => {
-				const meta = (await this.readNextJson()) as {
-					f: string
-					d: number
-				}
+				const meta = (await this.readNextJson()) as MetaData
 				const raw = await this.readNBytes(meta.d * 4)
 				return {
-					Meta: {
-						u: `file://` + meta.f,
-						d: meta.d,
-					},
+					Meta: meta,
 					Embedding: new Float32Array(raw),
 				}
 			},
