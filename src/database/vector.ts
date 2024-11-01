@@ -7,7 +7,7 @@ const collectionTableName = 'collection'
 const collectionIndexName = 'collectionIdx'
 const uriIndexName = 'uriIdx'
 
-export type VectorEntryKey = IDBValidKey
+export type VectorEntryKey = number
 export type VectorEntry = {
 	id?: VectorEntryKey
 	collection: string
@@ -29,7 +29,7 @@ interface VectorDatabaseInternal {
 
 	iterate(collection: string | null, clb: (e: PersistedVectorEntry) => boolean): Promise<void>
 
-	save(entry: VectorEntry): Promise<void>
+	save(entry: VectorEntry): Promise<VectorEntryKey>
 }
 
 export interface VectorDatabase {
@@ -53,9 +53,9 @@ export interface VectorDatabase {
 
 	iterateRemote(collection: string, clb: (e: PersistedVectorEntry) => boolean): Promise<void>
 
-	saveLocal(entry: VectorEntry): Promise<void>
+	saveLocal(entry: VectorEntry): Promise<VectorEntryKey>
 
-	saveRemote(entry: VectorEntry): Promise<void>
+	saveRemote(entry: VectorEntry): Promise<VectorEntryKey>
 
 	delete(key: VectorEntryKey): Promise<void>
 }
@@ -171,7 +171,7 @@ export function createVectorDatabase(): Promise<Plugin> {
 			const req = database.transaction(vectorTableName, 'readonly').objectStore(vectorTableName).getAllKeys()
 
 			return new Promise((resolve, reject) => {
-				req.onsuccess = () => resolve(req.result)
+				req.onsuccess = () => resolve(req.result.map(k => Number(k)))
 				req.onerror = reject
 			})
 		},
@@ -213,29 +213,29 @@ export function createVectorDatabase(): Promise<Plugin> {
 				req.onerror = reject
 			})
 		},
-		save(entry: VectorEntry): Promise<void> {
+		save(entry: VectorEntry): Promise<VectorEntryKey> {
 			const tx = database.transaction([vectorTableName, collectionTableName], 'readwrite')
-			const vectorReq = tx.objectStore(vectorTableName).put(entry)
+			const vectorReq = tx.objectStore(vectorTableName).put(entry, entry.id)
 			const collectionReq = tx.objectStore(collectionTableName).put({ name: entry.collection } as CollectionEntry)
 
 			return Promise.all([
 				new Promise((resolve, reject) => {
-					vectorReq.onsuccess = () => resolve()
+					vectorReq.onsuccess = () => resolve(Number(vectorReq.result))
 					vectorReq.onerror = reject
-				}) as Promise<void>,
+				}) as Promise<VectorEntryKey>,
 				new Promise((resolve, reject) => {
 					collectionReq.onsuccess = () => resolve()
 					collectionReq.onerror = reject
 				}) as Promise<void>,
-			]).then(() => undefined)
+			]).then(([vectorKey, _]) => vectorKey as VectorEntryKey)
 		},
-		saveLocal(entry: VectorEntry): Promise<void> {
+		saveLocal(entry: VectorEntry): Promise<VectorEntryKey> {
 			return this.save({
 				...entry,
 				collection: localCollectionName(entry.collection),
 			})
 		},
-		saveRemote(entry: VectorEntry): Promise<void> {
+		saveRemote(entry: VectorEntry): Promise<VectorEntryKey> {
 			return this.save({
 				...entry,
 				collection: remoteCollectionName(entry.collection),

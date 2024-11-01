@@ -19,6 +19,13 @@
         "name": "Sammlungsname",
         "add": "Sammlung hinzufügen"
       }
+    },
+    "list": {
+      "title": "Verwalten",
+      "add": "Bilder hinzufügen",
+      "delete": "Lösche {count} Bilder",
+      "content": "Bilder",
+      "filter": "Filter"
     }
   },
   "device": {

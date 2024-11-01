@@ -30,12 +30,17 @@
 			</template>
 
 			<v-list-item
-				:to="{ name: RouteCollectionAnalyse, params: { collection: 'test' } }"
+				:to="{ name: RouteCollectionList, params: { collection: collectionName } }"
+				:title="$t('collection.list.title')"
+				prepend-icon="mdi-format-list-group"
+			></v-list-item>
+			<v-list-item
+				:to="{ name: RouteCollectionAnalyse, params: { collection: collectionName } }"
 				:title="$t('vision.analyse.title')"
 				prepend-icon="mdi-archive-eye-outline"
 			></v-list-item>
 			<v-list-item
-				:to="{ name: RouteCollectionSearch, params: { collection: 'test' } }"
+				:to="{ name: RouteCollectionSearch, params: { collection: collectionName } }"
 				:title="$t('search.title')"
 				prepend-icon="mdi-image-search-outline"
 			></v-list-item>
@@ -73,11 +78,16 @@
 import { defineComponent } from "vue"
 import {
 	RouteCollection,
-	RouteCollectionAnalyse, RouteCollectionSearch,
+	RouteCollectionAnalyse,
+	RouteCollectionManage,
+	RouteCollectionSearch,
 	RouteDirectory,
 	RouteDirectoryAnalyse,
-	RouteDirectorySearch, RouteExport,
-	RouteHome, RouteImport, RouteHelp
+	RouteDirectorySearch,
+	RouteExport,
+	RouteHome,
+	RouteImport,
+	RouteHelp
 } from "../../router"
 import { mapState } from "pinia"
 import { useFileStore } from "../../store/file.ts"
@@ -98,6 +108,7 @@ export default defineComponent({
 			RouteDirectorySearch,
 			RouteCollection,
 			RouteCollectionAnalyse,
+			RouteCollectionList: RouteCollectionManage,
 			RouteCollectionSearch,
 			RouteImport,
 			RouteExport

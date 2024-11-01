@@ -10,10 +10,9 @@
 			</v-btn>
 		</template>
 		<template v-if="collection">
-			<v-textarea v-model="value"></v-textarea>
-			<v-btn v-if="!progress.doing" @click="onCollection" :disabled="!value" color="primary" block>
-				<v-icon icon="mdi-image-plus"></v-icon>
-				{{ $t('vision.analyse.add') }}
+			<v-btn v-if="!progress.doing" @click="onCollection" color="primary" block>
+				<v-icon icon="mdi-file-eye"></v-icon>
+				{{ $t('vision.analyse.action') }}
 			</v-btn>
 		</template>
 
@@ -36,8 +35,8 @@ import ClipVisionModelLoader from './ClipVisionModelLoader.vue'
 import { useAiStore } from '../../store/ai.ts'
 import ProgressDialog from '../progress/Dialog.vue'
 import { delayProgress } from '../progress/delayed.ts'
-import { VectorEntryKey } from '../../database/vector.ts'
-import { localFileURI, parseURI, remoteFileURI } from "../../database/uri.ts"
+import { PersistedVectorEntry, VectorEntryKey } from "../../database/vector.ts"
+import { localFileURI, parseURI } from "../../database/uri.ts"
 
 const validImageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.tiff']
 
@@ -56,7 +55,6 @@ export default defineComponent({
 	},
 	data() {
 		return {
-			value: '',
 			progress: {
 				title: '',
 				total: 0,
@@ -145,27 +143,29 @@ export default defineComponent({
 				delayedProgression.add(1)
 			}
 		},
-		async analyseImageUrls(collectionName: string, urls: string[]) {
-			if (urls.length === 0 || !this.processor || !this.visionModel) {
+		async analyseImageUrls(entries: PersistedVectorEntry[]) {
+			if (entries.length === 0 || !this.processor || !this.visionModel) {
 				return
 			}
 
 			this.progress.title = this.$t('vision.analyse.step.2')
-			this.progress.total = urls.length
+			this.progress.total = entries.length
 			this.progress.current = 0
 
 			const delayedProgression = delayProgress((i) => (this.progress.current = i))
-			for (let url of urls) {
-				const image = await RawImage.fromURL(url)
+			for (let entry of entries) {
+				const uri = parseURI(entry.uri)
+				if(!uri) {
+					continue
+				}
+
+				const image = await RawImage.fromURL(uri.rawURI)
 
 				const imageInputs = await this.processor(image)
 				const result = await this.visionModel(imageInputs)
 
-				await this.$vectorDB.saveRemote({
-					collection: collectionName,
-					uri: remoteFileURI(collectionName, url),
-					embedding: result.image_embeds[0].data,
-				})
+				entry.embedding = result.image_embeds[0].data
+				await this.$vectorDB.saveRemote(entry)
 
 				delayedProgression.add(1)
 			}
@@ -242,10 +242,14 @@ export default defineComponent({
 				return
 			}
 
-			const lines = this.value.split('\n')
-			const validLines = lines.filter((line) => URL.canParse(line))
-			await this.analyseImageUrls(this.collection, validLines)
-
+			const entries = [] as PersistedVectorEntry[]
+			await this.$vectorDB.iterateRemote(this.collection, (entry: PersistedVectorEntry) => {
+				if(entry.embedding.length === 0) {
+					entries.push(entry)
+				}
+				return true
+			})
+			await this.analyseImageUrls(entries)
 		},
 		async onDirectory() {
 			this.progress.doing = true

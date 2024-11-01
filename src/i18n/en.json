@@ -19,6 +19,13 @@
         "name": "New collection",
         "add": "Add collection"
       }
+    },
+    "list": {
+      "title": "Manage",
+      "add": "Add Images",
+      "delete": "Delete {count} images",
+      "content": "Content",
+      "filter": "Filter"
     }
   },
   "device": {

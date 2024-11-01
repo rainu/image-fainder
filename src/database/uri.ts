@@ -25,8 +25,9 @@ export const parseURI = (uri: URI): ParsedURI | null => {
 		}
 	} else if(url.protocol) {
 		const ps = url.pathname.split('/')
+		const uriWithoutHash = url.href.substring(0, url.href.length - url.hash.length)
 		return {
-			rawURI: uri,
+			rawURI: uriWithoutHash,
 			type: 'remoteFile',
 			collection: url.hash.substring(1), // remove leading '#'
 			name: ps[ps.length - 1], // last element
