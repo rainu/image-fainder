@@ -4,6 +4,9 @@
 
 		<v-navigation-drawer v-model="drawer.left" location="left">
 			<Navigation />
+			<template v-slot:append>
+				<Footer />
+			</template>
 		</v-navigation-drawer>
 		<v-navigation-drawer v-model="drawer.right" location="right">
 			<Settings />
@@ -24,9 +27,10 @@ import { useSettingsStore } from './store/settings.ts'
 import Settings from './components/Settings.vue'
 import Navigation from './components/layout/Navigation.vue'
 import HeadBar from "./components/layout/HeadBar.vue"
+import Footer from "./components/layout/Footer.vue"
 
 export default defineComponent({
-	components: { HeadBar, Navigation, Settings},
+	components: { Footer, HeadBar, Navigation, Settings},
 	data() {
 		return {
 			open: ['local', 'remote'],

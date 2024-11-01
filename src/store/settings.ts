@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
-declare const __PROJECT_NAME__: string
+import { name as projectName } from '../../package.json'
 
-const storePrefix = `${__PROJECT_NAME__}:settings:`
+const storePrefix = `${projectName}:settings:`
 const searchPrefix = `${storePrefix}:search:`
 
 const keyTheme = storePrefix + 'theme'

@@ -1,7 +1,6 @@
 import { App, Plugin } from 'vue'
 import { URI } from './uri.ts'
-
-declare const __PROJECT_NAME__: string
+import { name as projectName } from '../../package.json'
 
 const vectorTableName = 'vector'
 const collectionTableName = 'collection'
@@ -245,7 +244,7 @@ export function createVectorDatabase(): Promise<Plugin> {
 	})
 
 	return new Promise((resolve, reject) => {
-		const req = window.indexedDB.open(__PROJECT_NAME__, 1)
+		const req = window.indexedDB.open(projectName, 1)
 
 		req.onerror = reject
 		req.onupgradeneeded = () => {

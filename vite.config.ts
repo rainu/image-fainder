@@ -6,9 +6,6 @@ import { name } from './package.json'
 export default defineConfig({
 	base: `/${name}/`,
 	plugins: [vue()],
-	define: {
-		__PROJECT_NAME__: JSON.stringify(name),
-	},
 	build: {
 		target: 'esnext',
 	},
