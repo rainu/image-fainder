@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { name as projectName } from '../../package.json'
 
 const storePrefix = `${projectName}:settings:`
-const searchPrefix = `${storePrefix}:search:`
+const searchPrefix = `${storePrefix}search:`
 
 const keyTheme = storePrefix + 'theme'
 const keyLocale = storePrefix + 'locale'
@@ -18,7 +18,7 @@ export const useSettingsStore = defineStore('settings', {
 			search: {
 				itemsPerPage: Number.parseInt(localStorage.getItem(keyItemsPerPage) || '25'),
 				similarityThreshold: Number.parseFloat(localStorage.getItem(keySimilarityThreshold) || '0.1'),
-				showSimilarity: Boolean(localStorage.getItem(keyShowSimilarity)),
+				showSimilarity: localStorage.getItem(keyShowSimilarity) === 'true',
 			}
 		}
 	},

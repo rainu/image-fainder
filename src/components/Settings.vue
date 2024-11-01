@@ -2,7 +2,9 @@
 	<v-list v-model:opened="open">
 		<v-list-group value="General" fluid>
 			<template v-slot:activator="{ props }">
-				<v-list-item v-bind="props" prepend-icon="mdi-application-cog-outline"> {{ $t('settings.general.title') }} </v-list-item>
+				<v-list-item v-bind="props" prepend-icon="mdi-application-cog-outline">
+					{{ $t('settings.general.title') }}
+				</v-list-item>
 			</template>
 			<v-list-item
 				:title="$t('settings.general.theme')"
@@ -22,7 +24,9 @@
 		</v-list-group>
 		<v-list-group value="Search" fluid>
 			<template v-slot:activator="{ props }">
-				<v-list-item v-bind="props" prepend-icon="mdi-image-search-outline"> {{ $t('settings.search.title') }} </v-list-item>
+				<v-list-item v-bind="props" prepend-icon="mdi-image-search-outline">
+					{{ $t('settings.search.title') }}
+				</v-list-item>
 			</template>
 			<v-list-item class="ml-2">
 				<v-select
@@ -34,7 +38,9 @@
 				></v-select>
 			</v-list-item>
 			<v-list-item class="ml-2" prepend-inn="mdi-theme-light-dark">
-				<div class="text-caption">{{ $t('settings.search.similarity.threshold') }}: {{ search.similarityThreshold }}</div>
+				<div class="text-caption">
+					{{ $t('settings.search.similarity.threshold') }}: {{ search.similarityThreshold }}
+				</div>
 				<v-slider
 					:min="-1"
 					:max="1"
@@ -45,7 +51,14 @@
 				></v-slider>
 			</v-list-item>
 			<v-list-item class="ml-2" prepend-inn="mdi-theme-light-dark">
-				<v-switch :label="$t('settings.search.similarity.show')" v-model="showSimilarity" dense inset color="primary" density="compact">
+				<v-switch
+					:label="$t('settings.search.similarity.show')"
+					v-model="showSimilarity"
+					dense
+					inset
+					color="primary"
+					density="compact"
+				>
 				</v-switch>
 			</v-list-item>
 		</v-list-group>
