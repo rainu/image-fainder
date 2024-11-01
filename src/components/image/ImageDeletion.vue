@@ -66,7 +66,7 @@ export default defineComponent({
 	props: {
 		baseDir: {
 			type: Object as () => FileSystemDirectoryHandle,
-			required: true,
+			default: null,
 		},
 		images: {
 			type: Array as () => Image[],
@@ -133,7 +133,9 @@ export default defineComponent({
 					}
 
 					try {
-						await this.deleteFile(image)
+						if(image.uri.type === 'localFile') {
+							await this.deleteFile(image)
+						}
 					} catch (e) {
 						console.warn(e)
 					}

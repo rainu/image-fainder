@@ -11,6 +11,16 @@
       }
     }
   },
+  "collection": {
+    "title": "Sammlung",
+    "chooser": {
+      "title": "Sammlung auswählen",
+      "new": {
+        "name": "Sammlungsname",
+        "add": "Sammlung hinzufügen"
+      }
+    }
+  },
   "device": {
     "gpu": {
       "architecture": "Architektur",
@@ -30,12 +40,60 @@
     }
   },
   "file": {
+    "title": "Datei",
     "directory": {
       "choose": "Verzeichnis auswählen"
     }
   },
-  "landingpage": {
-    "title": "Start"
+  "help": {
+    "title": "Tutorial",
+    "local": {
+      "step": {
+        "1": {
+          "title": "Auswählen",
+          "description": "Wählen Sie ein lokales Verzeichnis aus. Der Browser benötigt die Berechtigung, auf das Verzeichnis zuzugreifen."
+        },
+        "2": {
+          "title": "Analysieren",
+          "description": "Analyse all images in the chosen directory. This will take the most of the time. You only have to analyse images once. If you add new images to the directory, you have to analyse the directory them again (only new images will be analysed).",
+          "description.de": "Analysiere alle Bilder im gewählten Verzeichnis. Dieser Schritt wird am längsten dauern. Sie müssen Bilder nur einmal analysieren. Wenn Sie neue Bilder hinzufügen, müssen Sie das Verzeichnis erneut analysieren (nur neue Bilder werden analysiert)."
+        },
+        "3": {
+          "title": "Suchen",
+          "description": "Suchen Sie nach Bildern im Verzeichnis. Denken Sie daran, dass Sie zuerst die Bilder analysieren müssen. Und nur Bilder, die analysiert wurden, können durchsucht werden."
+        }
+      }
+    },
+    "remote": {
+      "step": {
+        "1": {
+          "title": "Auswählen/Anlegen",
+          "description": "Wählen Sie eine vorhandene Sammlung aus oder erstellen Sie eine neue. Eine Sammlung ist eine Gruppe von Remote-Bildern, die analysiert werden."
+        },
+        "2": {
+          "title": "Analysieren",
+          "description": "Fügen Sie Bild-URLs zur Sammlung hinzu. Die Bilder werden heruntergeladen und analysiert. Sie müssen Bilder nur einmal analysieren. Wenn Sie neue Bilder zur Sammlung hinzufügen, müssen Sie die Sammlung erneut analysieren (nur neue Bilder werden analysiert)."
+        },
+        "3": {
+          "title": "Suchen",
+          "description": "Suchen Sie nach Bildern in der Sammlung. Denken Sie daran, dass Sie zuerst die Bilder analysieren müssen. Und nur Bilder, die analysiert wurden, können durchsucht werden."
+        }
+      }
+    }
+  },
+  "image": {
+    "deletion": {
+      "action": {
+        "delete": {
+          "confirm": {
+            "cancel": "Abbrechen",
+            "ok": "Löschen",
+            "title": "Löschen bestätigen"
+          },
+          "selected": "Ausgewählte Bilder löschen"
+        }
+      }
+    }
   },
   "model": {
     "text": {
@@ -65,9 +123,6 @@
     },
     "title": "Suchen"
   },
-  "tokenizer": {
-    "loading": "Lade Tokenisierer"
-  },
   "settings": {
     "general": {
       "language": "Sprache",
@@ -83,9 +138,13 @@
       "title": "Suche"
     }
   },
+  "tokenizer": {
+    "loading": "Lade Tokenisierer"
+  },
   "vision": {
     "analyse": {
       "action": "Analysiere Bilder",
+      "add": "Hinzufügen",
       "step": {
         "1": "Schritt 1/4: Durchsuche Dateien",
         "2": "Schritt 2/4: Analysiere unbekannte Bilder",

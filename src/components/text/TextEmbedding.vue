@@ -29,7 +29,7 @@ import ProgressBar from '../progress/Bar.vue'
 import ProgressDialog from '../progress/Dialog.vue'
 import { useSettingsStore } from '../../store/settings.ts'
 import { delayProgress } from '../progress/delayed.ts'
-import { ParsedURI, parseURI } from "../../database/uri.ts"
+import { ParsedURI, parseURI } from '../../database/uri.ts'
 
 export interface ImageResult {
 	uri: ParsedURI
@@ -41,6 +41,10 @@ export default defineComponent({
 	components: { ProgressDialog, ProgressBar, ClipTextModelLoader, AutoTokenizerLoader },
 	props: {
 		directory: {
+			type: String,
+			default: null,
+		},
+		collection: {
 			type: String,
 			default: null,
 		},
@@ -75,7 +79,11 @@ export default defineComponent({
 				return
 			}
 
-			this.progress.total = await this.$vectorDB.count(this.directory)
+			if (this.directory) {
+				this.progress.total = await this.$vectorDB.countLocal(this.directory)
+			} else if (this.collection) {
+				this.progress.total = await this.$vectorDB.countRemote(this.collection)
+			}
 			this.progress.current = 0
 
 			const inputs = this.tokenizer([this.searchTerm], {
@@ -100,7 +108,12 @@ export default defineComponent({
 				delayedProgression.add(1)
 				return true
 			}
-			await this.$vectorDB.iterate(this.directory, process)
+
+			if (this.directory) {
+				await this.$vectorDB.iterateLocal(this.directory, process)
+			} else if (this.collection) {
+				await this.$vectorDB.iterateRemote(this.collection, process)
+			}
 
 			candidates.sort((a, b) => b.similarity - a.similarity)
 			this.$emit('searchResult', candidates)

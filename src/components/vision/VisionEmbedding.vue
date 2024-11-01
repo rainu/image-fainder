@@ -4,18 +4,26 @@
 		<ClipVisionModelLoader modelName="jinaai/jina-clip-v1" />
 
 		<template v-if="directory">
-			<v-btn v-if="!progress.doing" @click="onClick" :disabled="!isLoaded" color="primary" block>
+			<v-btn v-if="!progress.doing" @click="onDirectory" :disabled="!isLoaded" color="primary" block>
 				<v-icon icon="mdi-file-eye"></v-icon>
 				{{ $t('vision.analyse.action') }}
 			</v-btn>
-			<ProgressDialog
-				v-else
-				:title="progress.title"
-				:current="progress.current"
-				:total="progress.total"
-				:unit="$t('progress.duration.unit.image')"
-			/>
 		</template>
+		<template v-if="collection">
+			<v-textarea v-model="value"></v-textarea>
+			<v-btn v-if="!progress.doing" @click="onCollection" :disabled="!value" color="primary" block>
+				<v-icon icon="mdi-image-plus"></v-icon>
+				{{ $t('vision.analyse.add') }}
+			</v-btn>
+		</template>
+
+		<ProgressDialog
+			v-if="progress.doing"
+			:title="progress.title"
+			:current="progress.current"
+			:total="progress.total"
+			:unit="$t('progress.duration.unit.image')"
+		/>
 	</div>
 </template>
 
@@ -29,7 +37,7 @@ import { useAiStore } from '../../store/ai.ts'
 import ProgressDialog from '../progress/Dialog.vue'
 import { delayProgress } from '../progress/delayed.ts'
 import { VectorEntryKey } from '../../database/vector.ts'
-import { localFileURI, parseURI } from '../../database/uri.ts'
+import { localFileURI, parseURI, remoteFileURI } from "../../database/uri.ts"
 
 const validImageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.tiff']
 
@@ -41,9 +49,14 @@ export default defineComponent({
 			type: Object as () => FileSystemDirectoryHandle | null,
 			default: null,
 		},
+		collection: {
+			type: String,
+			default: null,
+		},
 	},
 	data() {
 		return {
+			value: '',
 			progress: {
 				title: '',
 				total: 0,
@@ -106,7 +119,7 @@ export default defineComponent({
 
 			return files
 		},
-		async analyseImages(files: FileSystemFileHandle[]) {
+		async analyseImageFiles(files: FileSystemFileHandle[]) {
 			if (files.length === 0 || !this.processor || !this.visionModel || !this.directory) {
 				return
 			}
@@ -123,9 +136,34 @@ export default defineComponent({
 				const imageInputs = await this.processor(image)
 				const result = await this.visionModel(imageInputs)
 
-				await this.$vectorDB.save({
+				await this.$vectorDB.saveLocal({
 					collection: this.directory.name,
 					uri: localFileURI(this.directory.name, file.name),
+					embedding: result.image_embeds[0].data,
+				})
+
+				delayedProgression.add(1)
+			}
+		},
+		async analyseImageUrls(collectionName: string, urls: string[]) {
+			if (urls.length === 0 || !this.processor || !this.visionModel) {
+				return
+			}
+
+			this.progress.title = this.$t('vision.analyse.step.2')
+			this.progress.total = urls.length
+			this.progress.current = 0
+
+			const delayedProgression = delayProgress((i) => (this.progress.current = i))
+			for (let url of urls) {
+				const image = await RawImage.fromURL(url)
+
+				const imageInputs = await this.processor(image)
+				const result = await this.visionModel(imageInputs)
+
+				await this.$vectorDB.saveRemote({
+					collection: collectionName,
+					uri: remoteFileURI(collectionName, url),
 					embedding: result.image_embeds[0].data,
 				})
 
@@ -137,7 +175,7 @@ export default defineComponent({
 				return []
 			}
 
-			const count = await this.$vectorDB.count(this.directory.name)
+			const count = await this.$vectorDB.countLocal(this.directory.name)
 			if (count === 0) {
 				return []
 			}
@@ -153,7 +191,7 @@ export default defineComponent({
 
 			const result = [] as VectorEntryKey[]
 			const delayedProgression = delayProgress((i) => (this.progress.current = i))
-			await this.$vectorDB.iterate(this.directory.name, (entry) => {
+			await this.$vectorDB.iterateLocal(this.directory.name, (entry) => {
 				const parsedURI = parseURI(entry.uri)
 				if (parsedURI === null || parsedURI.type !== 'localFile') {
 					//skip non-local files
@@ -187,28 +225,48 @@ export default defineComponent({
 				delayedProgression.add(1)
 			}
 		},
-		async process() {
+		async processLocalDirectory() {
 			if (!this.directory) {
 				return
 			}
 
 			const fileNames = await this.listFiles(this.directory.name, this.directory)
 			const files = await this.scanImageFiles(fileNames)
-			await this.analyseImages(files)
+			await this.analyseImageFiles(files)
 
 			const orphaned = await this.getOrphanedImages(fileNames)
 			await this.deleteOrphaned(orphaned)
 		},
-		async onClick() {
+		async processCollection() {
+			if(!this.collection){
+				return
+			}
+
+			const lines = this.value.split('\n')
+			const validLines = lines.filter((line) => URL.canParse(line))
+			await this.analyseImageUrls(this.collection, validLines)
+
+		},
+		async onDirectory() {
 			this.progress.doing = true
 			try {
-				await this.process()
+				await this.processLocalDirectory()
 			} catch (e) {
 				console.error(e)
 			}
 			this.progress.doing = false
 			this.progress.total = 0
 		},
+		async onCollection(){
+			this.progress.doing = true
+			try {
+				await this.processCollection()
+			} catch (e) {
+				console.error(e)
+			}
+			this.progress.doing = false
+			this.progress.total = 0
+		}
 	},
 })
 </script>

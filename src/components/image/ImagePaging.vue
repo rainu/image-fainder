@@ -8,7 +8,12 @@
 
 		<v-row dense>
 			<v-col cols="12" class="image-container" :style="`column-count: ${columnCount};`">
-				<div v-for="image in displayItems" :key="image.uri.rawURI" @click="onClickImage(image.uri.rawURI)" class="cursor-pointer">
+				<div
+					v-for="image in displayItems"
+					:key="image.uri.rawURI"
+					@click="onClickImage(image.uri.rawURI)"
+					class="cursor-pointer"
+				>
 					<ImageItem
 						:base-dir="baseDir"
 						:image="image"
@@ -32,8 +37,8 @@
 		<v-app-bar location="bottom" elevation="0" v-if="selectedImages.length > 0" density="compact">
 			<v-container>
 				<v-row>
-					<v-col cols="6" sm="8"></v-col>
-					<v-col cols="6" sm="4">
+					<v-col cols="0" sm="6" md="8"></v-col>
+					<v-col cols="12" sm="6" md="4">
 						<ImageDeletion :base-dir="baseDir" :images="selectedImages" @onDeleted="onDeleted" />
 					</v-col>
 				</v-row>
@@ -47,9 +52,9 @@ import { defineComponent } from 'vue'
 import ImageItem, { Image } from './ImageItem.vue'
 import { ImageResult } from '../text/TextEmbedding.vue'
 import ImageDeletion from './ImageDeletion.vue'
-import { mapState } from "pinia"
-import { useSettingsStore } from "../../store/settings.ts"
-import { URI } from "../../database/uri.ts"
+import { mapState } from 'pinia'
+import { useSettingsStore } from '../../store/settings.ts'
+import { URI } from '../../database/uri.ts'
 
 export default defineComponent({
 	name: 'ImagePaging',
@@ -57,7 +62,7 @@ export default defineComponent({
 	props: {
 		baseDir: {
 			type: Object as () => FileSystemDirectoryHandle,
-			required: true,
+			default: null,
 		},
 		images: {
 			type: Array as () => ImageResult[],
@@ -108,12 +113,14 @@ export default defineComponent({
 			return Math.min(this.start + this.limitToUse, this.view.length)
 		},
 		displayItems(): Image[] {
-			if (!this.baseDir) return []
-
 			const imageItems = [] as Image[]
 			for (let result of this.view.slice(this.start, this.end)) {
-				if(result.uri.directory === this.baseDir.name) {
+				if (result.uri.type === 'remoteFile') {
 					imageItems.push(result)
+				} else if (result.uri.type === 'localFile') {
+					if (result.uri.directory === this.baseDir?.name) {
+						imageItems.push(result)
+					}
 				}
 			}
 			return imageItems

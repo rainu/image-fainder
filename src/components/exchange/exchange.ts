@@ -135,10 +135,19 @@ export const importFile = async (
 			throw new Error('Unknown URI type')
 		}
 
-		await vectorDB.save({
-			collection: parsedURI.directory,
-			uri: entry.Meta.u,
-			embedding: entry.Embedding,
-		})
+		if (parsedURI.type === 'localFile') {
+			await vectorDB.saveLocal({
+				collection: parsedURI.directory,
+				uri: entry.Meta.u,
+				embedding: entry.Embedding,
+			})
+		} else if (parsedURI.type === 'remoteFile') {
+			await vectorDB.saveRemote({
+				collection: parsedURI.collection,
+				uri: entry.Meta.u,
+				embedding: entry.Embedding,
+			})
+		}
+
 	}
 }

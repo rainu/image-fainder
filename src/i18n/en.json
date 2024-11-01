@@ -11,6 +11,16 @@
       }
     }
   },
+  "collection": {
+    "title": "Collection",
+    "chooser": {
+      "title": "Choose collection",
+      "new": {
+        "name": "New collection",
+        "add": "Add collection"
+      }
+    }
+  },
   "device": {
     "gpu": {
       "architecture": "Architecture",
@@ -30,8 +40,44 @@
     }
   },
   "file": {
+    "title": "File",
     "directory": {
       "choose": "Choose directory"
+    }
+  },
+  "help": {
+    "title": "Tutorial",
+    "local": {
+      "step": {
+        "1": {
+          "title": "Choose",
+          "description": "Choose a local directory. The browser needs the permission to access the directory."
+        },
+        "2": {
+          "title": "Analyse",
+          "description": "Analyse all images in the chosen directory. This will take the most of the time. You only have to analyse images once. If you add new images to the directory, you have to analyse the directory them again (only new images will be analysed)."
+        },
+        "3": {
+          "title": "Search",
+          "description": "Search for images in the directory. Keep in mind that you have to analyse images first. And only images that are analysed can be searched."
+        }
+      }
+    },
+    "remote": {
+      "step": {
+        "1": {
+          "title": "Choose/Create",
+          "description": "Choose an existing collection or create a new one. A collection is a group of remote images that will be analysed."
+        },
+        "2": {
+          "title": "Analyse",
+          "description": "Add remote image urls to the collection. The images will be downloaded and analysed. You only have to analyse images once. If you add new images to the collection, you have to analyse the collection them again (only new images will be analysed)."
+        },
+        "3": {
+          "title": "Search",
+          "description": "Search for images in the collection. Keep in mind that you have to analyse images first. And only images that are analysed can be searched."
+        }
+      }
     }
   },
   "image": {
@@ -47,9 +93,6 @@
         }
       }
     }
-  },
-  "landingpage": {
-    "title": "Home"
   },
   "model": {
     "text": {
@@ -100,6 +143,7 @@
   "vision": {
     "analyse": {
       "action": "Analyse Images",
+      "add": "Add",
       "step": {
         "1": "Step 1/4: Scanning files",
         "2": "Step 2/4: Analyse unknown images",

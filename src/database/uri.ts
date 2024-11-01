@@ -4,10 +4,13 @@ export type ParsedURI = {
 	readonly rawURI: URI
 	readonly collection: string
 	readonly name: string
-} & LocalFileURI
+} & (LocalFileURI | RemoteFileURI)
 export type LocalFileURI = {
 	readonly type: 'localFile'
 	readonly directory: string
+}
+export type RemoteFileURI = {
+	readonly type: 'remoteFile'
 }
 
 export const parseURI = (uri: URI): ParsedURI | null => {
@@ -20,9 +23,22 @@ export const parseURI = (uri: URI): ParsedURI | null => {
 			directory: url.host,
 			name: url.pathname.substring(1), // remove leading '/'
 		}
+	} else if(url.protocol) {
+		const ps = url.pathname.split('/')
+		return {
+			rawURI: uri,
+			type: 'remoteFile',
+			collection: url.hash.substring(1), // remove leading '#'
+			name: ps[ps.length - 1], // last element
+		}
 	}
 
 	return null
 }
 
 export const localFileURI = (directory: string, fileName: string) => `file://${directory}/${fileName}`
+export const remoteFileURI = (collection: string, url: string) => {
+	const urlObj = new URL(url)
+	urlObj.hash = collection
+	return urlObj.toString()
+}

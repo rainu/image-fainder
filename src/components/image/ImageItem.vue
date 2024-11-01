@@ -22,7 +22,7 @@ export default defineComponent({
 	props: {
 		baseDir: {
 			type: FileSystemDirectoryHandle,
-			required: true,
+			default: null,
 		},
 		image: {
 			type: Object as () => Image,
@@ -43,6 +43,15 @@ export default defineComponent({
 			deep: true,
 			immediate: true,
 			async handler() {
+				if(this.image.uri.type === 'remoteFile') {
+					this.url = this.image.uri.rawURI
+					return
+				}
+
+				if(!this.baseDir) {
+					return
+				}
+
 				try {
 					const file = await this.baseDir.getFileHandle(this.image.uri.name)
 					this.url = URL.createObjectURL(await file.getFile())

@@ -8,13 +8,17 @@ declare module '@vue/runtime-core' {
 }
 
 import { directoryMiddleware } from './middleware/directory.ts'
-import { supportMiddleware } from './middleware/support.ts'
+import { supportDatabase, supportLocal } from "./middleware/support.ts"
 
 export const RouteHome = 'home'
+export const RouteHelp = 'help'
 export const RouteUnsupported = 'unsupported'
 export const RouteDirectory = 'directory'
 export const RouteDirectoryAnalyse = RouteDirectory + '-analyse'
 export const RouteDirectorySearch = RouteDirectory + '-search'
+export const RouteCollection = 'collection'
+export const RouteCollectionAnalyse = RouteCollection + '-analyse'
+export const RouteCollectionSearch = RouteCollection + '-search'
 export const RouteImport = 'import'
 export const RouteExport = 'export'
 
@@ -24,24 +28,24 @@ export default createRouter({
 		{
 			name: RouteHome,
 			path: '/',
-			beforeEnter: supportMiddleware,
+			beforeEnter: supportDatabase,
 			component: () => import('../views/Home.vue'),
 		},
 		{
 			name: RouteImport,
 			path: '/exchange/import',
-			beforeEnter: supportMiddleware,
+			beforeEnter: supportDatabase,
 			component: () => import('../views/Import.vue'),
 		},
 		{
 			name: RouteExport,
 			path: '/exchange/export',
-			beforeEnter: supportMiddleware,
+			beforeEnter: supportDatabase,
 			component: () => import('../views/Export.vue'),
 		},
 		{
 			path: '/directory',
-			beforeEnter: [supportMiddleware, directoryMiddleware],
+			beforeEnter: [supportLocal, supportDatabase],
 			children: [
 				{
 					name: RouteDirectory,
@@ -51,14 +55,48 @@ export default createRouter({
 				{
 					name: RouteDirectoryAnalyse,
 					path: 'analyse',
+					beforeEnter: directoryMiddleware,
 					component: () => import('../views/directory/Analyse.vue'),
 				},
 				{
 					name: RouteDirectorySearch,
 					path: 'search',
+					beforeEnter: directoryMiddleware,
 					component: () => import('../views/directory/Search.vue'),
 				}
 			]
+		},
+		{
+			path: '/collection',
+			beforeEnter: supportDatabase,
+			children: [
+				{
+					name: RouteCollection,
+					path: '',
+					component: () => import('../views/collection/Index.vue'),
+				},
+				{
+					path: ':collection',
+					children: [
+						{
+							name: RouteCollectionAnalyse,
+							path: 'analyse',
+							component: () => import('../views/collection/Analyse.vue'),
+						},
+						{
+							name: RouteCollectionSearch,
+							path: 'search',
+							component: () => import('../views/collection/Search.vue'),
+						},
+					]
+				}
+			]
+		},
+		{
+			name: RouteHelp,
+			path: '/help',
+			beforeEnter: supportDatabase,
+			component: () => import('../views/Help.vue'),
 		},
 		{
 			name: RouteUnsupported,

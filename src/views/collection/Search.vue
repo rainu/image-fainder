@@ -1,19 +1,19 @@
 <template>
 	<v-app-bar location="bottom" elevation="0" density="compact">
-		<TextEmbedding :directory="mainDirectoryName" @search-result="onSearchResult" />
+		<TextEmbedding :collection="collectionName" @search-result="onSearchResult" />
 	</v-app-bar>
 
 	<AutoTokenizerLoader modelName="jinaai/jina-clip-v1" />
 	<ClipTextModelLoader modelName="jinaai/jina-clip-v1" />
 
-	<template v-if="mainDirectory && images && images.length > 0">
-		<ImagePaging :base-dir="mainDirectory" :images="images" />
+	<template v-if="collectionName && images && images.length > 0">
+		<ImagePaging :images="images" />
 	</template>
 	<template v-else>
 		<v-container class="d-flex justify-center align-center">
 			<span
 				v-if="totalImages !== 0"
-				v-html="$t('vision.analysed.summary', { total: totalImages, collection: mainDirectoryName })"
+				v-html="$t('vision.analysed.summary', { total: totalImages, collection: collectionName })"
 			>
 			</span>
 		</v-container>
@@ -22,8 +22,6 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { mapState } from 'pinia'
-import { useFileStore } from '../../store/file.ts'
 import ImagePaging from '../../components/image/ImagePaging.vue'
 import TextEmbedding, { ImageResult } from '../../components/text/TextEmbedding.vue'
 import AutoTokenizerLoader from '../../components/text/AutoTokenizerLoader.vue'
@@ -38,30 +36,32 @@ export default defineComponent({
 		}
 	},
 	computed: {
-		...mapState(useFileStore, ['mainDirectory']),
-		mainDirectoryName() {
-			return this.mainDirectory ? this.mainDirectory.name : undefined
+		collectionName(): string {
+			if(Array.isArray(this.$route.params.collection)) {
+				return this.$route.params.collection[0]
+			}
+			return this.$route.params.collection
 		},
 	},
 	methods: {
 		async onSearchResult(results: ImageResult[]) {
 			this.images = results
 		},
-		updateTotalImageCount(dirName: string | undefined) {
-			if (dirName) {
-				this.$vectorDB.countLocal(dirName).then((c) => (this.totalImages = c))
+		updateTotalImageCount(collection: string | undefined) {
+			if (collection) {
+				this.$vectorDB.countRemote(collection).then((c) => (this.totalImages = c))
 			} else {
 				this.totalImages = 0
 			}
 		},
 	},
 	watch: {
-		mainDirectoryName(newName: string | undefined) {
-			this.updateTotalImageCount(newName)
+		collectionName(collection: string | undefined) {
+			this.updateTotalImageCount(collection)
 		},
 	},
 	mounted() {
-		this.updateTotalImageCount(this.mainDirectoryName)
+		this.updateTotalImageCount(this.collectionName)
 	},
 })
 </script>
