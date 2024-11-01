@@ -19,3 +19,4 @@ git commit -m "release version: v${VERSION}"
 
 git tag "v${VERSION}"
 git push origin "v${VERSION}"
+git push origin
