@@ -20,12 +20,20 @@
         "add": "Add collection"
       }
     },
-    "list": {
+    "manage": {
       "title": "Manage",
       "add": "Add Images",
       "delete": "Delete {count} images",
       "content": "Content",
-      "filter": "Filter"
+      "filter": "Filter",
+      "validation": {
+        "summary": "{success} successfully, {errors} errors, {warnings} warnings",
+        "invalid": {
+          "url": "Invalid image URL",
+          "error": "Error: {error}",
+          "exists": "Image already exists"
+        }
+      }
     }
   },
   "device": {

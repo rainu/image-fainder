@@ -23,47 +23,47 @@ export default defineConfig({
 				display: 'standalone',
 				icons: [
 					{
-						src: 'public/logo/48x48.png',
+						src: 'logo/48x48.png',
 						sizes: '48x48',
 						type: 'image/png',
 					},
 					{
-						src: 'public/logo/72x72.png',
+						src: 'logo/72x72.png',
 						sizes: '72x72',
 						type: 'image/png',
 					},
 					{
-						src: 'public/logo/96x96.png',
+						src: 'logo/96x96.png',
 						sizes: '96x96',
 						type: 'image/png',
 					},
 					{
-						src: 'public/logo/128x128.png',
+						src: 'logo/128x128.png',
 						sizes: '128x128',
 						type: 'image/png',
 					},
 					{
-						src: 'public/logo/144x144.png',
+						src: 'logo/144x144.png',
 						sizes: '144x144',
 						type: 'image/png',
 					},
 					{
-						src: 'public/logo/152x152.png',
+						src: 'logo/152x152.png',
 						sizes: '152x152',
 						type: 'image/png',
 					},
 					{
-						src: 'public/logo/192x192.png',
+						src: 'logo/192x192.png',
 						sizes: '192x192',
 						type: 'image/png',
 					},
 					{
-						src: 'public/logo/384x384.png',
+						src: 'logo/384x384.png',
 						sizes: '384x384',
 						type: 'image/png',
 					},
 					{
-						src: 'public/logo/512x512.png',
+						src: 'logo/512x512.png',
 						sizes: '512x512',
 						type: 'image/png',
 					},

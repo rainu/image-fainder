@@ -20,12 +20,20 @@
         "add": "Sammlung hinzufügen"
       }
     },
-    "list": {
+    "manage": {
       "title": "Verwalten",
       "add": "Bilder hinzufügen",
       "delete": "Lösche {count} Bilder",
       "content": "Bilder",
-      "filter": "Filter"
+      "filter": "Filter",
+      "validation": {
+        "summary": "{success} Erfolgreich, {errors} Fehler, {warnings} Warnungen",
+        "invalid": {
+          "url": "Ungültige Bild URL",
+          "error": "Fehler: {error}",
+          "exists": "Bild existiert bereits"
+        }
+      }
     }
   },
   "device": {

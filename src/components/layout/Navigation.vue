@@ -31,7 +31,7 @@
 
 			<v-list-item
 				:to="{ name: RouteCollectionList, params: { collection: collectionName } }"
-				:title="$t('collection.list.title')"
+				:title="$t('collection.manage.title')"
 				prepend-icon="mdi-format-list-group"
 			></v-list-item>
 			<v-list-item
