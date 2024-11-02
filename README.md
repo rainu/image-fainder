@@ -1,5 +1,7 @@
 # image-fainder
 
+![](./public/logo/384x384.png)
+
 A **local** AI powered image finder application.
 
 With this web application you can scan a **local** directory for images and search by text **similar** images.
