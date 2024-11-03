@@ -41,6 +41,12 @@ import { localFileURI, parseURI } from '../../database/uri.ts'
 
 const validImageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.tiff']
 
+type directoryContent = {
+	directory: FileSystemDirectoryHandle
+	files: string[]
+	subDirectories: directoryContent[]
+}
+
 export default defineComponent({
 	name: 'VisionEmbedding',
 	components: { ProgressDialog, ClipVisionModelLoader, ProcessorLoader },
@@ -75,8 +81,12 @@ export default defineComponent({
 		onInterrupt() {
 			this.progress.interrupted = true
 		},
-		async listFiles(root: string, dir: FileSystemDirectoryHandle): Promise<string[]> {
-			const matches = []
+		async listFiles(root: string, dir: FileSystemDirectoryHandle): Promise<directoryContent> {
+			const result = {
+				directory: dir,
+				files: [],
+				subDirectories: [],
+			} as directoryContent
 
 			for await (const entry of dir.values()) {
 				if (this.progress.interrupted) {
@@ -84,38 +94,49 @@ export default defineComponent({
 				}
 
 				if (entry.kind === 'directory') {
-					const subMatches = await this.listFiles(root + '/' + entry.name, entry)
-					matches.push(...subMatches)
+					const subDirectory = await this.listFiles(root + '/' + entry.name, entry)
+					result.subDirectories.push(subDirectory)
 				} else if (entry.kind === 'file' && validImageExtensions.some((ext) => entry.name.endsWith(ext))) {
-					matches.push(root + '/' + entry.name)
+					result.files.push(entry.name)
 				}
 			}
 
-			return matches
+			return result
 		},
-		async scanImageFiles(fileNames: string[]): Promise<FileSystemFileHandle[]> {
-			if (fileNames.length === 0 || !this.directory) {
-				return []
+		async walkDirectory(
+			path: string,
+			directory: directoryContent,
+			callback: (path: string, handle: FileSystemDirectoryHandle, filename: string) => Promise<boolean>,
+		) {
+			for (let file of directory.files) {
+				const shouldContinue = await callback(path, directory.directory, file)
+				if (!shouldContinue) {
+					return
+				}
 			}
 
-			const files = []
+			for (let subDirectory of directory.subDirectories) {
+				await this.walkDirectory(path + '/' + subDirectory.directory.name, subDirectory, callback)
+			}
+		},
+		async scanImageFiles(dirContent: directoryContent): Promise<FileSystemFileHandle[]> {
+			const files = [] as FileSystemFileHandle[]
 
 			this.progress.title = this.$t('vision.analyse.step.1')
-			this.progress.total = fileNames.length
+
+			let totalFiles = 0
+			await this.walkDirectory('', dirContent, async () => {
+				totalFiles++
+				return true
+			})
+			this.progress.total = totalFiles
 			this.progress.current = 0
 
 			const delayedProgression = delayProgress((i) => (this.progress.current = i))
-			for (const fileName of fileNames) {
-				if (this.progress.interrupted) {
-					break
-				}
-
+			await this.walkDirectory(dirContent.directory.name, dirContent, async (path, dirHandle, filename) => {
 				try {
-					const file = await this.directory.getFileHandle(
-						// remove directory name from file name
-						fileName.substring(this.directory.name.length + 1),
-					)
-					const fileUri = localFileURI(this.directory.name, file.name)
+					const file = await dirHandle.getFileHandle(filename)
+					const fileUri = localFileURI(path, file.name)
 					const exists = await this.$vectorDB.exists(fileUri)
 
 					if (!exists) {
@@ -126,7 +147,9 @@ export default defineComponent({
 				}
 
 				delayedProgression.add(1)
-			}
+
+				return !this.progress.interrupted
+			})
 
 			return files
 		},
@@ -191,7 +214,7 @@ export default defineComponent({
 				delayedProgression.add(1)
 			}
 		},
-		async getOrphanedImages(fileNames: string[]): Promise<VectorEntryKey[]> {
+		async getOrphanedImages(dirContent: directoryContent): Promise<VectorEntryKey[]> {
 			if (!this.directory || this.progress.interrupted) {
 				return []
 			}
@@ -206,9 +229,10 @@ export default defineComponent({
 			this.progress.current = 0
 
 			let fileNameMap = {} as Record<string, boolean>
-			for (const fileName of fileNames) {
-				fileNameMap[fileName] = true
-			}
+			await this.walkDirectory(dirContent.directory.name, dirContent, async (path, _, filename) => {
+				fileNameMap[path + '/' + filename] = true
+				return !this.progress.interrupted
+			})
 
 			const result = [] as VectorEntryKey[]
 			const delayedProgression = delayProgress((i) => (this.progress.current = i))
@@ -254,11 +278,11 @@ export default defineComponent({
 				return
 			}
 
-			const fileNames = await this.listFiles(this.directory.name, this.directory)
-			const files = await this.scanImageFiles(fileNames)
+			const dirContent = await this.listFiles(this.directory.name, this.directory)
+			const files = await this.scanImageFiles(dirContent)
 			await this.analyseImageFiles(files)
 
-			const orphaned = await this.getOrphanedImages(fileNames)
+			const orphaned = await this.getOrphanedImages(dirContent)
 			await this.deleteOrphaned(orphaned)
 		},
 		async processCollection() {
