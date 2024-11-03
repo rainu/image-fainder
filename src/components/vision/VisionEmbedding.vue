@@ -41,10 +41,14 @@ import { localFileURI, parseURI } from '../../database/uri.ts'
 
 const validImageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.tiff']
 
-type directoryContent = {
+type DirectoryContent = {
 	directory: FileSystemDirectoryHandle
 	files: string[]
-	subDirectories: directoryContent[]
+	subDirectories: DirectoryContent[]
+}
+type FileWithParent = {
+	file: FileSystemFileHandle
+	parent: string
 }
 
 export default defineComponent({
@@ -81,12 +85,12 @@ export default defineComponent({
 		onInterrupt() {
 			this.progress.interrupted = true
 		},
-		async listFiles(root: string, dir: FileSystemDirectoryHandle): Promise<directoryContent> {
+		async listFiles(root: string, dir: FileSystemDirectoryHandle): Promise<DirectoryContent> {
 			const result = {
 				directory: dir,
 				files: [],
 				subDirectories: [],
-			} as directoryContent
+			} as DirectoryContent
 
 			for await (const entry of dir.values()) {
 				if (this.progress.interrupted) {
@@ -105,7 +109,7 @@ export default defineComponent({
 		},
 		async walkDirectory(
 			path: string,
-			directory: directoryContent,
+			directory: DirectoryContent,
 			callback: (path: string, handle: FileSystemDirectoryHandle, filename: string) => Promise<boolean>,
 		) {
 			for (let file of directory.files) {
@@ -119,8 +123,8 @@ export default defineComponent({
 				await this.walkDirectory(path + '/' + subDirectory.directory.name, subDirectory, callback)
 			}
 		},
-		async scanImageFiles(dirContent: directoryContent): Promise<FileSystemFileHandle[]> {
-			const files = [] as FileSystemFileHandle[]
+		async scanImageFiles(dirContent: DirectoryContent): Promise<FileWithParent[]> {
+			const files = [] as FileWithParent[]
 
 			this.progress.title = this.$t('vision.analyse.step.1')
 
@@ -140,7 +144,10 @@ export default defineComponent({
 					const exists = await this.$vectorDB.exists(fileUri)
 
 					if (!exists) {
-						files.push(file)
+						files.push({
+							file: file,
+							parent: path,
+						})
 					}
 				} catch (e) {
 					console.error(e)
@@ -153,7 +160,7 @@ export default defineComponent({
 
 			return files
 		},
-		async analyseImageFiles(files: FileSystemFileHandle[]) {
+		async analyseImageFiles(files: FileWithParent[]) {
 			if (files.length === 0 || !this.processor || !this.visionModel || !this.directory) {
 				return
 			}
@@ -163,20 +170,21 @@ export default defineComponent({
 			this.progress.current = 0
 
 			const delayedProgression = delayProgress((i) => (this.progress.current = i))
-			for (let file of files) {
+			for (let fileWithParent of files) {
 				if (this.progress.interrupted) {
 					break
 				}
 
-				const fileBlob = await file.getFile()
+				const fileBlob = await fileWithParent.file.getFile()
 				const image = await RawImage.fromBlob(fileBlob)
 
 				const imageInputs = await this.processor(image)
 				const result = await this.visionModel(imageInputs)
 
+				const uri = localFileURI(fileWithParent.parent, fileWithParent.file.name)
 				await this.$vectorDB.saveLocal({
 					collection: this.directory.name,
-					uri: localFileURI(this.directory.name, file.name),
+					uri,
 					embedding: result.image_embeds[0].data,
 				})
 
@@ -214,7 +222,7 @@ export default defineComponent({
 				delayedProgression.add(1)
 			}
 		},
-		async getOrphanedImages(dirContent: directoryContent): Promise<VectorEntryKey[]> {
+		async getOrphanedImages(dirContent: DirectoryContent): Promise<VectorEntryKey[]> {
 			if (!this.directory || this.progress.interrupted) {
 				return []
 			}
