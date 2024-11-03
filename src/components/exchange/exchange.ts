@@ -1,5 +1,5 @@
 import { VectorDatabase } from '../../database/vector.ts'
-import { parseURI } from "../../database/uri.ts"
+import { parseURI } from '../../database/uri.ts'
 
 type MetaData = {
 	u: string
@@ -11,13 +11,14 @@ type Entry = {
 	Embedding: Float32Array
 }
 
-const magicNumber = 0x52494644	//ascii -> "RIFD"
+const magicNumber = 0x52494644 //ascii -> "RIFD"
 const version = 1
 
 export const exportFile = async (
 	fileHandle: FileSystemFileHandle,
 	vectorDB: VectorDatabase,
 	progressCallback: (c: number, t: number) => void,
+	interrupted: () => boolean = () => false,
 ) => {
 	const writableStream = await fileHandle.createWritable()
 
@@ -35,6 +36,10 @@ export const exportFile = async (
 	const keys = await vectorDB.getKeys()
 
 	for (let k = 0; k < keys.length; k++) {
+		if (interrupted()) {
+			break
+		}
+
 		const key = keys[k]
 		progressCallback(k, keys.length)
 
@@ -105,6 +110,7 @@ export const importFile = async (
 	fileHandle: FileSystemFileHandle,
 	vectorDB: VectorDatabase,
 	progressCallback: (c: number, t: number) => void,
+	interrupted: () => boolean = () => false,
 ) => {
 	const file = fileReader(await fileHandle.getFile())
 	const givenMagicNumber = await file.readNumber()
@@ -116,7 +122,7 @@ export const importFile = async (
 		throw new Error('Invalid file version')
 	}
 
-	while (true) {
+	while (!interrupted()) {
 		progressCallback(file.offset, file.total)
 
 		let entry
@@ -148,6 +154,5 @@ export const importFile = async (
 				embedding: entry.Embedding,
 			})
 		}
-
 	}
 }

@@ -2,7 +2,13 @@
 	<v-dialog v-model="show">
 		<v-card density="compact">
 			<v-card-title v-if="title">{{ title }}</v-card-title>
-			<ProgressBar :current="current" :total="total" :hide-steps="hideSteps" :unit="unit" />
+			<ProgressBar :current="current" :total="total" :hide-steps="hideSteps" :unit="unit" >
+				<slot name="progressbar"></slot>
+			</ProgressBar>
+			<v-btn @click="$emit('interrupt')" color="error">
+				<v-icon icon="mdi-cancel"></v-icon>
+				{{$t('progress.interrupt')}}
+			</v-btn>
 		</v-card>
 	</v-dialog>
 </template>
@@ -36,6 +42,7 @@ export default defineComponent({
 			default: '',
 		},
 	},
+	emits: ['interrupt'],
 	data() {
 		return {}
 	},

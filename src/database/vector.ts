@@ -128,6 +128,8 @@ export function createVectorDatabase(): Promise<Plugin> {
 						} as PersistedVectorEntry)
 						if (shouldContinue) {
 							cursor.continue()
+						} else {
+							resolve()
 						}
 					} else {
 						resolve()

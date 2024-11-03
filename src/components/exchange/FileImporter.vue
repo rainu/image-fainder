@@ -1,24 +1,34 @@
 <template>
 	<div>
-		<v-btn @click="onClick" v-if="!progress.status" block color="primary">
+		<v-btn @click="onClick" block color="primary">
 			<v-icon icon="mdi-file-import"></v-icon>
 			{{ $t('exchange.import.title') }}
 		</v-btn>
-		<ProgressBar v-else :current="progress.current" :total="progress.total" hide-steps>
-			<span>{{ progress.currentItem }}</span>
-		</ProgressBar>
+
+		<ProgressDialog
+			v-if="progress.status"
+			:title="$t('exchange.import.title')"
+			:current="progress.current"
+			:total="progress.total"
+			hide-steps
+			@interrupt="onInterrupt"
+		>
+			<template v-slot:progressbar>
+				<span>{{ progress.currentItem }}</span>
+			</template>
+		</ProgressDialog>
 	</div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
 import { importFile } from './exchange'
-import ProgressBar from '../progress/Bar.vue'
-import { delayProgress } from "../progress/delayed.ts"
+import { delayProgress } from '../progress/delayed.ts'
+import ProgressDialog from '../progress/Dialog.vue'
 
 export default defineComponent({
 	name: 'FileImporter',
-	components: { ProgressBar },
+	components: { ProgressDialog },
 	data() {
 		return {
 			progress: {
@@ -26,10 +36,14 @@ export default defineComponent({
 				current: 0,
 				currentItem: 0,
 				total: 0,
+				interrupted: false,
 			},
 		}
 	},
 	methods: {
+		onInterrupt() {
+			this.progress.interrupted = true
+		},
 		async onClick() {
 			try {
 				const [fh] = await window.showOpenFilePicker({ multiple: false })
@@ -38,16 +52,22 @@ export default defineComponent({
 
 				const delayedProgression = delayProgress((i) => (this.progress.current = i))
 				const delayedProgressionItem = delayProgress((i) => (this.progress.currentItem = i))
-				await importFile(fh, this.$vectorDB, (current, total) => {
-					this.progress.total = total
+				await importFile(
+					fh,
+					this.$vectorDB,
+					(current, total) => {
+						this.progress.total = total
 
-					delayedProgression.set(current)
-					delayedProgressionItem.add(1)
-				})
+						delayedProgression.set(current)
+						delayedProgressionItem.add(1)
+					},
+					() => this.progress.interrupted,
+				)
 			} catch (e) {
 				console.error(e)
 			}
 			this.progress.status = false
+			this.progress.interrupted = false
 		},
 	},
 })

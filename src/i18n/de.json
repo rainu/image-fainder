@@ -129,7 +129,8 @@
       "unit": {
         "image": "Bild"
       }
-    }
+    },
+    "interrupt": "Unterbrechen"
   },
   "search": {
     "label": "Ähnliche finden",

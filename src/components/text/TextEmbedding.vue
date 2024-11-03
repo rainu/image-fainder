@@ -13,7 +13,12 @@
 			append-inner-icon="mdi-magnify"
 		>
 		</v-text-field>
-		<ProgressDialog :title="$t('search.progress.title')" :current="progress.current" :total="progress.total" />
+		<ProgressDialog
+			:title="$t('search.progress.title')"
+			:current="progress.current"
+			:total="progress.total"
+			@interrupt="onInterrupt"
+		/>
 	</v-container>
 </template>
 
@@ -60,6 +65,7 @@ export default defineComponent({
 			progress: {
 				total: 0,
 				current: 0,
+				interrupted: false,
 			},
 		}
 	},
@@ -74,6 +80,9 @@ export default defineComponent({
 		},
 	},
 	methods: {
+		onInterrupt() {
+			this.progress.interrupted = true
+		},
 		async process() {
 			if (!this.tokenizer || !this.textModel) {
 				return
@@ -106,7 +115,7 @@ export default defineComponent({
 				}
 
 				delayedProgression.add(1)
-				return true
+				return !this.progress.interrupted
 			}
 
 			if (this.directory) {
@@ -125,6 +134,7 @@ export default defineComponent({
 				console.error(e)
 			}
 			this.progress.total = 0
+			this.progress.interrupted = false
 		},
 	},
 })

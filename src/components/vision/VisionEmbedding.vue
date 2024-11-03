@@ -22,6 +22,7 @@
 			:current="progress.current"
 			:total="progress.total"
 			:unit="$t('progress.duration.unit.image')"
+			@interrupt="onInterrupt"
 		/>
 	</div>
 </template>
@@ -35,8 +36,8 @@ import ClipVisionModelLoader from './ClipVisionModelLoader.vue'
 import { useAiStore } from '../../store/ai.ts'
 import ProgressDialog from '../progress/Dialog.vue'
 import { delayProgress } from '../progress/delayed.ts'
-import { PersistedVectorEntry, VectorEntryKey } from "../../database/vector.ts"
-import { localFileURI, parseURI } from "../../database/uri.ts"
+import { PersistedVectorEntry, VectorEntryKey } from '../../database/vector.ts'
+import { localFileURI, parseURI } from '../../database/uri.ts'
 
 const validImageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.tiff']
 
@@ -60,6 +61,7 @@ export default defineComponent({
 				total: 0,
 				current: 0,
 				doing: false,
+				interrupted: false,
 			},
 		}
 	},
@@ -70,10 +72,17 @@ export default defineComponent({
 		},
 	},
 	methods: {
+		onInterrupt() {
+			this.progress.interrupted = true
+		},
 		async listFiles(root: string, dir: FileSystemDirectoryHandle): Promise<string[]> {
 			const matches = []
 
 			for await (const entry of dir.values()) {
+				if (this.progress.interrupted) {
+					break
+				}
+
 				if (entry.kind === 'directory') {
 					const subMatches = await this.listFiles(root + '/' + entry.name, entry)
 					matches.push(...subMatches)
@@ -97,6 +106,10 @@ export default defineComponent({
 
 			const delayedProgression = delayProgress((i) => (this.progress.current = i))
 			for (const fileName of fileNames) {
+				if (this.progress.interrupted) {
+					break
+				}
+
 				try {
 					const file = await this.directory.getFileHandle(
 						// remove directory name from file name
@@ -128,6 +141,10 @@ export default defineComponent({
 
 			const delayedProgression = delayProgress((i) => (this.progress.current = i))
 			for (let file of files) {
+				if (this.progress.interrupted) {
+					break
+				}
+
 				const fileBlob = await file.getFile()
 				const image = await RawImage.fromBlob(fileBlob)
 
@@ -154,8 +171,12 @@ export default defineComponent({
 
 			const delayedProgression = delayProgress((i) => (this.progress.current = i))
 			for (let entry of entries) {
+				if (this.progress.interrupted) {
+					break
+				}
+
 				const uri = parseURI(entry.uri)
-				if(!uri) {
+				if (!uri) {
 					continue
 				}
 
@@ -171,7 +192,7 @@ export default defineComponent({
 			}
 		},
 		async getOrphanedImages(fileNames: string[]): Promise<VectorEntryKey[]> {
-			if (!this.directory) {
+			if (!this.directory || this.progress.interrupted) {
 				return []
 			}
 
@@ -204,7 +225,7 @@ export default defineComponent({
 				}
 				delayedProgression.add(1)
 
-				return true
+				return !this.progress.interrupted
 			})
 
 			return result
@@ -220,6 +241,9 @@ export default defineComponent({
 
 			const delayedProgression = delayProgress((i) => (this.progress.current = i))
 			for (let key of keys) {
+				if (this.progress.interrupted) {
+					break
+				}
 				await this.$vectorDB.delete(key)
 
 				delayedProgression.add(1)
@@ -238,39 +262,40 @@ export default defineComponent({
 			await this.deleteOrphaned(orphaned)
 		},
 		async processCollection() {
-			if(!this.collection){
+			if (!this.collection) {
 				return
 			}
 
 			const entries = [] as PersistedVectorEntry[]
 			await this.$vectorDB.iterateRemote(this.collection, (entry: PersistedVectorEntry) => {
-				if(entry.embedding.length === 0) {
+				if (entry.embedding.length === 0) {
 					entries.push(entry)
 				}
-				return true
+				return !this.progress.interrupted
 			})
 			await this.analyseImageUrls(entries)
 		},
-		async onDirectory() {
+		async process(type: 'directory' | 'collection') {
 			this.progress.doing = true
 			try {
-				await this.processLocalDirectory()
+				if (type === 'directory') {
+					await this.processLocalDirectory()
+				} else if (type === 'collection') {
+					await this.processCollection()
+				}
 			} catch (e) {
 				console.error(e)
 			}
 			this.progress.doing = false
 			this.progress.total = 0
+			this.progress.interrupted = false
 		},
-		async onCollection(){
-			this.progress.doing = true
-			try {
-				await this.processCollection()
-			} catch (e) {
-				console.error(e)
-			}
-			this.progress.doing = false
-			this.progress.total = 0
-		}
+		async onDirectory() {
+			await this.process('directory')
+		},
+		async onCollection() {
+			await this.process('collection')
+		},
 	},
 })
 </script>

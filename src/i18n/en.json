@@ -128,7 +128,8 @@
       "unit": {
         "image": "image"
       }
-    }
+    },
+    "interrupt": "Interrupt"
   },
   "search": {
     "label": "Search similar",
