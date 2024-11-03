@@ -17,6 +17,8 @@ const version = 1
 export const exportFile = async (
 	fileHandle: FileSystemFileHandle,
 	vectorDB: VectorDatabase,
+	directories: string[] | null = null,
+	collections: string[] | null = null,
 	progressCallback: (c: number, t: number) => void,
 	interrupted: () => boolean = () => false,
 ) => {
@@ -33,7 +35,19 @@ export const exportFile = async (
 	await writeNumber(magicNumber)
 	await writeNumber(version)
 
-	const keys = await vectorDB.getKeys()
+	let keys = []
+	if (collections === null && directories === null) {
+		keys = await vectorDB.getKeys()
+	} else {
+		keys = []
+		const dirKeys = directories
+			? (await Promise.all(directories.map((d) => vectorDB.getLocalDirectoryKeys(d)))).flat()
+			: []
+		const colKeys = collections
+			? (await Promise.all(collections.map((c) => vectorDB.getRemoteCollectionKeys(c)))).flat()
+			: []
+		keys = [...dirKeys, ...colKeys]
+	}
 
 	for (let k = 0; k < keys.length; k++) {
 		if (interrupted()) {

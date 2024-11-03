@@ -43,6 +43,10 @@ export interface VectorDatabase {
 
 	getKeys(): Promise<VectorEntryKey[]>
 
+	getLocalDirectoryKeys(directory: string): Promise<VectorEntryKey[]>
+
+	getRemoteCollectionKeys(collection: string): Promise<VectorEntryKey[]>
+
 	getByKey(key: VectorEntryKey): Promise<PersistedVectorEntry>
 
 	getByURI(uri: URI): Promise<PersistedVectorEntry>
@@ -173,7 +177,31 @@ export function createVectorDatabase(): Promise<Plugin> {
 			const req = database.transaction(vectorTableName, 'readonly').objectStore(vectorTableName).getAllKeys()
 
 			return new Promise((resolve, reject) => {
-				req.onsuccess = () => resolve(req.result.map(k => Number(k)))
+				req.onsuccess = () => resolve(req.result.map((k) => Number(k)))
+				req.onerror = reject
+			})
+		},
+		getLocalDirectoryKeys(directory: string): Promise<VectorEntryKey[]> {
+			const req = database
+				.transaction(vectorTableName, 'readonly')
+				.objectStore(vectorTableName)
+				.index(collectionIndexName)
+				.getAllKeys(localCollectionName(directory))
+
+			return new Promise((resolve, reject) => {
+				req.onsuccess = () => resolve(req.result.map((k) => Number(k)))
+				req.onerror = reject
+			})
+		},
+		getRemoteCollectionKeys(collection: string): Promise<VectorEntryKey[]> {
+			const req = database
+				.transaction(vectorTableName, 'readonly')
+				.objectStore(vectorTableName)
+				.index(collectionIndexName)
+				.getAllKeys(remoteCollectionName(collection))
+
+			return new Promise((resolve, reject) => {
+				req.onsuccess = () => resolve(req.result.map((k) => Number(k)))
 				req.onerror = reject
 			})
 		},

@@ -48,7 +48,11 @@
   },
   "exchange": {
     "export": {
-      "title": "Export"
+      "title": "Export",
+      "select": {
+        "all": "Select all",
+        "none": "Select none"
+      }
     },
     "import": {
       "title": "Import"
