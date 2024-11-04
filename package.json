@@ -9,7 +9,7 @@
   },
   "homepage": "https://github.com/rainu/image-fainder",
   "private": true,
-  "version": "0.6.2",
+  "version": "0.7.0",
   "type": "module",
   "scripts": {
     "dev": "VITE_COMMIT_HASH=$(git rev-parse HEAD) vite",

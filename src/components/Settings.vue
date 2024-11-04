@@ -141,7 +141,7 @@ export default defineComponent({
 			'setModelProcessor',
 			'setModelTokenizer',
 		]),
-		setModelValues(value) {
+		setModelValues(value: {vision: string, text: string, processor: string, tokenizer: string}) {
 			this.model.vision = value.vision
 			this.model.text = value.text
 			this.model.processor = value.processor
