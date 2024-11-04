@@ -52,8 +52,25 @@ export default defineComponent({
 					return
 				}
 
+				let parentDirectory = this.baseDir
+				let name = this.image.uri.name
+				const parents = this.image.uri.name.split('/')
+				if(parents.length > 1) {
+					name = parents.pop() || ''
+					for (let parent of parents) {
+						try {
+							parentDirectory = await parentDirectory.getDirectoryHandle(parent)
+						} catch (e: Error) {
+							if (e.name !== 'NotFoundError') {
+								console.error(e)
+							}
+							return
+						}
+					}
+				}
+
 				try {
-					const file = await this.baseDir.getFileHandle(this.image.uri.name)
+					const file = await parentDirectory.getFileHandle(name)
 					this.url = URL.createObjectURL(await file.getFile())
 				} catch (e: Error) {
 					if (e.name !== 'NotFoundError') {
