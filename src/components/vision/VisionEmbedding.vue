@@ -102,7 +102,10 @@ export default defineComponent({
 				if (entry.kind === 'directory') {
 					const subDirectory = await this.listFiles(root + '/' + entry.name, entry)
 					result.subDirectories.push(subDirectory)
-				} else if (entry.kind === 'file' && validImageExtensions.some((ext) => entry.name.toLowerCase().endsWith(ext))) {
+				} else if (
+					entry.kind === 'file' &&
+					validImageExtensions.some((ext) => entry.name.toLowerCase().endsWith(ext))
+				) {
 					result.files.push(entry.name)
 				}
 			}
@@ -177,18 +180,22 @@ export default defineComponent({
 					break
 				}
 
-				const fileBlob = await fileWithParent.file.getFile()
-				const image = await RawImage.fromBlob(fileBlob)
+				try {
+					const fileBlob = await fileWithParent.file.getFile()
+					const image = await RawImage.fromBlob(fileBlob)
 
-				const imageInputs = await this.processor(image)
-				const result = await this.visionModel(imageInputs)
+					const imageInputs = await this.processor(image)
+					const result = await this.visionModel(imageInputs)
 
-				const uri = localFileURI(fileWithParent.parent, fileWithParent.file.name)
-				await this.$vectorDB.saveLocal({
-					collection: this.directory.name,
-					uri,
-					embedding: result.image_embeds[0].data,
-				})
+					const uri = localFileURI(fileWithParent.parent, fileWithParent.file.name)
+					await this.$vectorDB.saveLocal({
+						collection: this.directory.name,
+						uri,
+						embedding: result.image_embeds[0].data,
+					})
+				} catch (e) {
+					console.error('Failed to process image: ' + fileWithParent.parent + '/' + fileWithParent.file.name, e)
+				}
 
 				delayedProgression.add(1)
 			}
@@ -213,13 +220,17 @@ export default defineComponent({
 					continue
 				}
 
-				const image = await RawImage.fromURL(uri.rawURI)
+				try {
+					const image = await RawImage.fromURL(uri.rawURI)
 
-				const imageInputs = await this.processor(image)
-				const result = await this.visionModel(imageInputs)
+					const imageInputs = await this.processor(image)
+					const result = await this.visionModel(imageInputs)
 
-				entry.embedding = result.image_embeds[0].data
-				await this.$vectorDB.saveRemote(entry)
+					entry.embedding = result.image_embeds[0].data
+					await this.$vectorDB.saveRemote(entry)
+				} catch (e) {
+					console.error('Failed to process image: ' + entry.uri, e)
+				}
 
 				delayedProgression.add(1)
 			}
