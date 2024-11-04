@@ -148,6 +148,14 @@
       "theme": "Theme",
       "title": "General"
     },
+    "model": {
+      "title": "Model",
+      "vision": "Vision",
+      "text": "Text",
+      "tokenizer": "Tokenizer",
+      "processor": "Processor",
+      "apply": "Apply"
+    },
     "search": {
       "ipp": "Items per page",
       "similarity": {

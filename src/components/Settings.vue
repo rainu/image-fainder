@@ -62,6 +62,50 @@
 				</v-switch>
 			</v-list-item>
 		</v-list-group>
+
+		<v-list-group value="Model" fluid>
+			<template v-slot:activator="{ props }">
+				<v-list-item v-bind="props" prepend-icon="mdi-head-cog-outline">
+					{{ $t('settings.model.title') }}
+				</v-list-item>
+			</template>
+
+			<v-list-item class="ml-2">
+				<v-text-field
+					v-model="model.vision"
+					:label="$t('settings.model.vision')"
+					density="compact"
+					hide-details
+				></v-text-field>
+			</v-list-item>
+			<v-list-item class="ml-2">
+				<v-text-field
+					v-model="model.text"
+					:label="$t('settings.model.text')"
+					density="compact"
+					hide-details
+				></v-text-field>
+			</v-list-item>
+			<v-list-item class="ml-2">
+				<v-text-field
+					v-model="model.processor"
+					:label="$t('settings.model.processor')"
+					density="compact"
+					hide-details
+				></v-text-field>
+			</v-list-item>
+			<v-list-item class="ml-2">
+				<v-text-field
+					v-model="model.tokenizer"
+					:label="$t('settings.model.tokenizer')"
+					density="compact"
+					hide-details
+				></v-text-field>
+			</v-list-item>
+			<v-list-item class="ml-2">
+				<v-btn color="primary" block @click="applyModelValues">{{ $t('settings.model.apply') }}</v-btn>
+			</v-list-item>
+		</v-list-group>
 	</v-list>
 </template>
 
@@ -77,6 +121,12 @@ export default defineComponent({
 		return {
 			languages: i18n.locales.sort(),
 			open: ['General'],
+			model: {
+				vision: '',
+				text: '',
+				tokenizer: '',
+				processor: '',
+			},
 		}
 	},
 	methods: {
@@ -86,10 +136,30 @@ export default defineComponent({
 			'setItemsPerPage',
 			'setSimilarityThreshold',
 			'setShowSimilarity',
+			'setModelVision',
+			'setModelText',
+			'setModelProcessor',
+			'setModelTokenizer',
 		]),
+		setModelValues(value) {
+			this.model.vision = value.vision
+			this.model.text = value.text
+			this.model.processor = value.processor
+			this.model.tokenizer = value.tokenizer
+		},
+		applyModelValues(){
+			this.setModelVision(this.model.vision)
+			this.setModelText(this.model.text)
+			this.setModelProcessor(this.model.processor)
+			this.setModelTokenizer(this.model.tokenizer)
+
+			//reload website
+			window.location.reload()
+		}
 	},
 	computed: {
 		...mapState(useSettingsStore, ['search', 'locale']),
+		...mapState(useSettingsStore, { persistedModel: 'model' }),
 		currentLocale: {
 			get() {
 				return this.locale
@@ -122,6 +192,17 @@ export default defineComponent({
 				this.setShowSimilarity(value)
 			},
 		},
+	},
+	watch: {
+		persistedModel: {
+			deep: true,
+			handler(value) {
+				this.setModelValues(value)
+			},
+		},
+	},
+	mounted() {
+		this.setModelValues(this.persistedModel)
 	},
 })
 </script>

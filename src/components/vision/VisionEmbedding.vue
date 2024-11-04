@@ -1,7 +1,7 @@
 <template>
 	<div>
-		<ProcessorLoader modelName="Xenova/clip-vit-base-patch32" />
-		<ClipVisionModelLoader modelName="jinaai/jina-clip-v1" />
+		<ProcessorLoader :modelName="model.processor" />
+		<ClipVisionModelLoader :modelName="model.vision" />
 
 		<template v-if="directory">
 			<v-btn v-if="!progress.doing" @click="onDirectory" :disabled="!isLoaded" color="primary" block>
@@ -38,6 +38,7 @@ import ProgressDialog from '../progress/Dialog.vue'
 import { delayProgress } from '../progress/delayed.ts'
 import { PersistedVectorEntry, VectorEntryKey } from '../../database/vector.ts'
 import { localFileURI, parseURI } from '../../database/uri.ts'
+import { useSettingsStore } from '../../store/settings.ts'
 
 const validImageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.tiff']
 
@@ -77,6 +78,7 @@ export default defineComponent({
 	},
 	computed: {
 		...mapState(useAiStore, ['processor', 'visionModel']),
+		...mapState(useSettingsStore, ['model']),
 		isLoaded() {
 			return this.processor && this.visionModel
 		},

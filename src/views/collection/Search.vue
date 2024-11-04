@@ -3,8 +3,8 @@
 		<TextEmbedding :collection="collectionName" @search-result="onSearchResult" />
 	</v-app-bar>
 
-	<AutoTokenizerLoader modelName="jinaai/jina-clip-v1" />
-	<ClipTextModelLoader modelName="jinaai/jina-clip-v1" />
+	<AutoTokenizerLoader :modelName="model.tokenizer" />
+	<ClipTextModelLoader :modelName="model.text" />
 
 	<template v-if="collectionName && images && images.length > 0">
 		<ImagePaging :images="images" />
@@ -26,6 +26,8 @@ import ImagePaging from '../../components/image/ImagePaging.vue'
 import TextEmbedding, { ImageResult } from '../../components/text/TextEmbedding.vue'
 import AutoTokenizerLoader from '../../components/text/AutoTokenizerLoader.vue'
 import ClipTextModelLoader from '../../components/text/ClipTextModelLoader.vue'
+import { mapState } from 'pinia'
+import { useSettingsStore } from '../../store/settings.ts'
 
 export default defineComponent({
 	components: { ClipTextModelLoader, AutoTokenizerLoader, TextEmbedding, ImagePaging },
@@ -36,6 +38,7 @@ export default defineComponent({
 		}
 	},
 	computed: {
+		...mapState(useSettingsStore, ['model']),
 		collectionName(): string {
 			if(Array.isArray(this.$route.params.collection)) {
 				return this.$route.params.collection[0]
