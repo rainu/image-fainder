@@ -102,7 +102,7 @@ export default defineComponent({
 				if (entry.kind === 'directory') {
 					const subDirectory = await this.listFiles(root + '/' + entry.name, entry)
 					result.subDirectories.push(subDirectory)
-				} else if (entry.kind === 'file' && validImageExtensions.some((ext) => entry.name.endsWith(ext))) {
+				} else if (entry.kind === 'file' && validImageExtensions.some((ext) => entry.name.toLowerCase().endsWith(ext))) {
 					result.files.push(entry.name)
 				}
 			}
