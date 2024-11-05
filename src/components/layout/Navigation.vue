@@ -44,7 +44,7 @@
 				></v-list-item>
 				<v-list-item
 					:to="{ name: RouteCollectionManageAdd, params: { collection: collectionName } }"
-					:title="$t('collection.manage.add')"
+					:title="$t('collection.manage.add.title')"
 					class="ml-4"
 					prepend-icon="mdi-image-plus"
 				></v-list-item>

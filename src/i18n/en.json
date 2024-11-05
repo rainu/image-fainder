@@ -22,7 +22,15 @@
     },
     "manage": {
       "title": "Manage",
-      "add": "Add Images",
+      "add": {
+        "title": "Add",
+        "lines": "Add Links",
+        "file": "Add Links File",
+        "progress": {
+          "lines": "Adding links",
+          "file": "Adding links from file"
+        }
+      },
       "delete": "Delete {count} images",
       "content": "Content",
       "filter": "Filter",

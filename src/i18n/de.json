@@ -22,7 +22,16 @@
     },
     "manage": {
       "title": "Verwalten",
-      "add": "Bilder hinzufügen",
+      "add": {
+        "title": "Bilder hinzufügen",
+        "lines": "Links hinzufügen",
+        "file": "Link Datei hinzufügen",
+        "progress": {
+          "lines": "Links hinzufügen",
+          "file": "Links aus Datei hinzufügen"
+        }
+      },
+      "addFile": "Link Datei hinzufügen",
       "delete": "Lösche {count} Bilder",
       "content": "Bilder",
       "filter": "Filter",
