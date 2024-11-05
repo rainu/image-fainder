@@ -66,16 +66,18 @@
 	</v-row>
 
 	<v-app-bar location="bottom" elevation="0" density="compact">
-		<v-btn
-			@click="onClick"
-			block
-			color="primary"
-			variant="elevated"
-			:disabled="selectedCollections.local.length + selectedCollections.remote.length === 0"
-		>
-			<v-icon icon="mdi-file-export"></v-icon>
-			{{ $t('exchange.export.title') }}
-		</v-btn>
+		<v-container>
+			<v-btn
+				@click="onClick"
+				block
+				color="primary"
+				variant="elevated"
+				:disabled="selectedCollections.local.length + selectedCollections.remote.length === 0"
+			>
+				<v-icon icon="mdi-file-export"></v-icon>
+				{{ $t('exchange.export.title') }}
+			</v-btn>
+		</v-container>
 		<ProgressDialog
 			v-if="progress.status"
 			:title="$t('exchange.export.title')"

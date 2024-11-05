@@ -27,9 +27,13 @@ interface VectorDatabaseInternal {
 
 	getCollections(): Promise<string[]>
 
+	getCollectionKeys(collection: string): Promise<VectorEntryKey[]>
+
 	iterate(collection: string | null, clb: (e: PersistedVectorEntry) => boolean): Promise<void>
 
 	save(entry: VectorEntry): Promise<VectorEntryKey>
+
+	deleteCollection(collection: string, clb: (e: PersistedVectorEntry) => boolean): Promise<void>
 }
 
 export interface VectorDatabase {
@@ -62,6 +66,10 @@ export interface VectorDatabase {
 	saveRemote(entry: VectorEntry): Promise<VectorEntryKey>
 
 	delete(key: VectorEntryKey): Promise<void>
+
+	deleteLocal(directory: string, clb: (e: PersistedVectorEntry) => boolean): Promise<void>
+
+	deleteRemote(collection: string, clb: (e: PersistedVectorEntry) => boolean): Promise<void>
 }
 
 declare module '@vue/runtime-core' {
@@ -126,10 +134,7 @@ export function createVectorDatabase(): Promise<Plugin> {
 				req.onsuccess = () => {
 					const cursor = req.result as IDBCursorWithValue
 					if (cursor) {
-						const shouldContinue = clb({
-							id: cursor.primaryKey,
-							...cursor.value,
-						} as PersistedVectorEntry)
+						const shouldContinue = clb({ id: cursor.primaryKey, ...cursor.value } as PersistedVectorEntry)
 						if (shouldContinue) {
 							cursor.continue()
 						} else {
@@ -181,29 +186,23 @@ export function createVectorDatabase(): Promise<Plugin> {
 				req.onerror = reject
 			})
 		},
-		getLocalDirectoryKeys(directory: string): Promise<VectorEntryKey[]> {
+		getCollectionKeys(collection: string): Promise<VectorEntryKey[]> {
 			const req = database
 				.transaction(vectorTableName, 'readonly')
 				.objectStore(vectorTableName)
 				.index(collectionIndexName)
-				.getAllKeys(localCollectionName(directory))
+				.getAllKeys(collection)
 
 			return new Promise((resolve, reject) => {
 				req.onsuccess = () => resolve(req.result.map((k) => Number(k)))
 				req.onerror = reject
 			})
 		},
+		getLocalDirectoryKeys(directory: string): Promise<VectorEntryKey[]> {
+			return this.getCollectionKeys(localCollectionName(directory))
+		},
 		getRemoteCollectionKeys(collection: string): Promise<VectorEntryKey[]> {
-			const req = database
-				.transaction(vectorTableName, 'readonly')
-				.objectStore(vectorTableName)
-				.index(collectionIndexName)
-				.getAllKeys(remoteCollectionName(collection))
-
-			return new Promise((resolve, reject) => {
-				req.onsuccess = () => resolve(req.result.map((k) => Number(k)))
-				req.onerror = reject
-			})
+			return this.getCollectionKeys(remoteCollectionName(collection))
 		},
 		getByKey(key: VectorEntryKey): Promise<PersistedVectorEntry> {
 			const req = database.transaction(vectorTableName, 'readonly').objectStore(vectorTableName).get(key)
@@ -242,6 +241,49 @@ export function createVectorDatabase(): Promise<Plugin> {
 				req.onsuccess = () => resolve()
 				req.onerror = reject
 			})
+		},
+		deleteCollection(collection: string, clb: (e: PersistedVectorEntry) => boolean): Promise<void> {
+			const tx = database.transaction([vectorTableName, collectionTableName], 'readwrite')
+			const vectorReq = tx
+				.objectStore(vectorTableName)
+				.index(collectionIndexName)
+				.openCursor(IDBKeyRange.only(collection))
+
+			return new Promise((resolve, reject) => {
+				vectorReq.onsuccess = () => {
+					const cursor = vectorReq.result as IDBCursorWithValue
+					if (cursor) {
+						cursor.delete()
+
+						const shouldContinue = clb({ id: cursor.primaryKey, ...cursor.value } as PersistedVectorEntry)
+						if (shouldContinue) {
+							cursor.continue()
+						} else {
+							resolve(true)
+						}
+					} else {
+						resolve(false)
+					}
+				}
+				vectorReq.onerror = reject
+			}).then((interrupted) => {
+				if (interrupted) {
+					return
+				}
+
+				const collectionReq = tx.objectStore(collectionTableName).delete(collection)
+
+				return new Promise((resolve, reject) => {
+					collectionReq.onsuccess = () => resolve()
+					collectionReq.onerror = reject
+				}) as Promise<void>
+			})
+		},
+		deleteLocal(directory: string, clb: (e: PersistedVectorEntry) => boolean): Promise<void> {
+			return this.deleteCollection(localCollectionName(directory), clb)
+		},
+		deleteRemote(collection: string, clb: (e: PersistedVectorEntry) => boolean): Promise<void> {
+			return this.deleteCollection(remoteCollectionName(collection), clb)
 		},
 		save(entry: VectorEntry): Promise<VectorEntryKey> {
 			const tx = database.transaction([vectorTableName, collectionTableName], 'readwrite')

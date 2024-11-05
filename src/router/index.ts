@@ -22,6 +22,7 @@ export const RouteCollectionManage = RouteCollection + '-manage'
 export const RouteCollectionManageList = RouteCollectionManage + '-list'
 export const RouteCollectionManageAdd = RouteCollectionManage + '-add'
 export const RouteCollectionSearch = RouteCollection + '-search'
+export const RouteCleanup = 'cleanup'
 export const RouteImport = 'import'
 export const RouteExport = 'export'
 
@@ -45,6 +46,12 @@ export default createRouter({
 			path: '/exchange/export',
 			beforeEnter: supportDatabase,
 			component: () => import('../views/Export.vue'),
+		},
+		{
+			name: RouteCleanup,
+			path: '/cleanup',
+			beforeEnter: supportDatabase,
+			component: () => import('../views/Cleanup.vue'),
 		},
 		{
 			path: '/directory',

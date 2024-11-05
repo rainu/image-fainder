@@ -11,6 +11,20 @@
       }
     }
   },
+  "cleanup": {
+    "title": "Aufräumen",
+    "local": {
+      "title": "Verzeichnisse"
+    },
+    "remote": {
+      "title": "Sammlungen"
+    },
+    "select": {
+      "all": "Alle auswählen",
+      "none": "Keine auswählen"
+    },
+    "delete": "Löschen"
+  },
   "collection": {
     "title": "Sammlung",
     "chooser": {

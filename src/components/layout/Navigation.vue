@@ -67,6 +67,12 @@
 			<v-list-item :to="{ name: RouteCollection }" :title="$t('collection.title')" prepend-icon="mdi-collage"></v-list-item>
 		</template>
 
+		<v-list-item
+			:to="{ name: RouteCleanup }"
+			:title="$t('cleanup.title')"
+			prepend-icon="mdi-eraser"
+		></v-list-item>
+
 		<v-divider />
 
 		<!-- Exchange -->
@@ -106,6 +112,7 @@ import {
 	RouteExport,
 	RouteHome,
 	RouteImport,
+	RouteCleanup,
 	RouteHelp,
 } from '../../router'
 import { mapState } from "pinia"
@@ -130,6 +137,7 @@ export default defineComponent({
 			RouteCollectionManageList,
 			RouteCollectionManageAdd,
 			RouteCollectionSearch,
+			RouteCleanup,
 			RouteImport,
 			RouteExport
 		}
