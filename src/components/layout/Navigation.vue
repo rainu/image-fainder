@@ -2,7 +2,7 @@
 	<v-list :opened="open" open-strategy="multiple">
 		<!-- Directory (only if supported) -->
 		<template v-if="features.local">
-			<v-list-group v-if="mainDirectory" value="local">
+			<v-list-group v-if="mainDirectory" value="local" fluid>
 				<template v-slot:activator="{ props }">
 					<v-list-item v-bind="props" :title="$t('file.title')" prepend-icon="mdi-folder-open-outline"></v-list-item>
 				</template>
@@ -10,11 +10,13 @@
 				<v-list-item
 					:to="{ name: RouteDirectoryAnalyse }"
 					:title="$t('vision.analyse.title')"
+					class="ml-2"
 					prepend-icon="mdi-folder-eye-outline"
 				></v-list-item>
 				<v-list-item
 					:to="{ name: RouteDirectorySearch }"
 					:title="$t('search.title')"
+					class="ml-2"
 					prepend-icon="mdi-folder-search-outline"
 				></v-list-item>
 			</v-list-group>
@@ -24,24 +26,40 @@
 		</template>
 
 		<!-- Collection -->
-		<v-list-group v-if="collectionName" value="remote">
+		<v-list-group v-if="collectionName" value="remote" fluid>
 			<template v-slot:activator="{ props }">
 				<v-list-item v-bind="props" :title="$t('collection.title')" prepend-icon="mdi-collage" active></v-list-item>
 			</template>
 
-			<v-list-item
-				:to="{ name: RouteCollectionList, params: { collection: collectionName } }"
-				:title="$t('collection.manage.title')"
-				prepend-icon="mdi-format-list-group"
-			></v-list-item>
+			<v-list-group value="remote-manage" fluid>
+				<template v-slot:activator="{ props }">
+					<v-list-item v-bind="props" :title="$t('collection.manage.title')" prepend-icon="mdi-format-list-group" class="ml-2" active></v-list-item>
+				</template>
+
+				<v-list-item
+					:to="{ name: RouteCollectionManageList, params: { collection: collectionName } }"
+					:title="$t('collection.manage.content')"
+					class="ml-4"
+					prepend-icon="mdi-format-list-checkbox"
+				></v-list-item>
+				<v-list-item
+					:to="{ name: RouteCollectionManageAdd, params: { collection: collectionName } }"
+					:title="$t('collection.manage.add')"
+					class="ml-4"
+					prepend-icon="mdi-image-plus"
+				></v-list-item>
+			</v-list-group>
+
 			<v-list-item
 				:to="{ name: RouteCollectionAnalyse, params: { collection: collectionName } }"
 				:title="$t('vision.analyse.title')"
+				class="ml-2"
 				prepend-icon="mdi-archive-eye-outline"
 			></v-list-item>
 			<v-list-item
 				:to="{ name: RouteCollectionSearch, params: { collection: collectionName } }"
 				:title="$t('search.title')"
+				class="ml-2"
 				prepend-icon="mdi-image-search-outline"
 			></v-list-item>
 		</v-list-group>
@@ -79,7 +97,8 @@ import { defineComponent } from "vue"
 import {
 	RouteCollection,
 	RouteCollectionAnalyse,
-	RouteCollectionManage,
+	RouteCollectionManageList,
+	RouteCollectionManageAdd,
 	RouteCollectionSearch,
 	RouteDirectory,
 	RouteDirectoryAnalyse,
@@ -87,8 +106,8 @@ import {
 	RouteExport,
 	RouteHome,
 	RouteImport,
-	RouteHelp
-} from "../../router"
+	RouteHelp,
+} from '../../router'
 import { mapState } from "pinia"
 import { useFileStore } from "../../store/file.ts"
 import { isLocalSupported } from "../../support.ts"
@@ -108,7 +127,8 @@ export default defineComponent({
 			RouteDirectorySearch,
 			RouteCollection,
 			RouteCollectionAnalyse,
-			RouteCollectionList: RouteCollectionManage,
+			RouteCollectionManageList,
+			RouteCollectionManageAdd,
 			RouteCollectionSearch,
 			RouteImport,
 			RouteExport

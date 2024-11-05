@@ -19,6 +19,8 @@ export const RouteDirectorySearch = RouteDirectory + '-search'
 export const RouteCollection = 'collection'
 export const RouteCollectionAnalyse = RouteCollection + '-analyse'
 export const RouteCollectionManage = RouteCollection + '-manage'
+export const RouteCollectionManageList = RouteCollectionManage + '-list'
+export const RouteCollectionManageAdd = RouteCollectionManage + '-add'
 export const RouteCollectionSearch = RouteCollection + '-search'
 export const RouteImport = 'import'
 export const RouteExport = 'export'
@@ -87,7 +89,18 @@ export default createRouter({
 						{
 							name: RouteCollectionManage,
 							path: 'manage',
-							component: () => import('../views/collection/Manage.vue'),
+							children: [
+								{
+									name: RouteCollectionManageList,
+									path: 'list',
+									component: () => import('../views/collection/manage/List.vue'),
+								},
+								{
+									name: RouteCollectionManageAdd,
+									path: 'add',
+									component: () => import('../views/collection/manage/Add.vue'),
+								},
+							]
 						},
 						{
 							name: RouteCollectionSearch,
