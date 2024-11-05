@@ -266,11 +266,6 @@ export default defineComponent({
 </script>
 
 <style>
-a {
-	text-decoration: none;
-	color: inherit;
-}
-
 .lined-textarea .error {
 	background-color: red;
 	color: white;

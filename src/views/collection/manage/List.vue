@@ -198,4 +198,9 @@ export default defineComponent({
 })
 </script>
 
-<style scoped></style>
+<style>
+a {
+	text-decoration: none;
+	color: inherit;
+}
+</style>
