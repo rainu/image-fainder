@@ -131,7 +131,7 @@ export default defineComponent({
 				.sort(([a], [b]) => Number(a) - Number(b))
 				.slice(start, end)
 				.reduce((acc, [key, value]) => {
-					acc[key] = value
+					acc[Number(key)] = value
 					return acc
 				}, {} as Record<number, AdvancedAnnotation>)
 		},
@@ -143,7 +143,7 @@ export default defineComponent({
 		onInterrupt() {
 			this.progress.interrupted = true
 		},
-		async processLine(line: string): AdvancedAnnotation {
+		async processLine(line: string): Promise<AdvancedAnnotation> {
 			const valid = URL.canParse(line)
 			if (!valid) {
 				return {
@@ -254,7 +254,7 @@ export default defineComponent({
 
 			if (buffer.length > 0) {
 				if (!this.progress.interrupted) {
-					results[line] = await this.processLine(line, buffer)
+					results[line] = await this.processLine(buffer)
 				}
 			}
 
