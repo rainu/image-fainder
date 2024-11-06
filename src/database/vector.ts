@@ -53,6 +53,8 @@ export interface VectorDatabase {
 
 	getByKey(key: VectorEntryKey): Promise<PersistedVectorEntry>
 
+	getByKeys(keys: VectorEntryKey[], clb: (e: PersistedVectorEntry) => void): Promise<void>
+
 	getByURI(uri: URI): Promise<PersistedVectorEntry>
 
 	exists(uri: URI): Promise<boolean>
@@ -85,7 +87,7 @@ const remoteCollectionName = (collection: string) => remoteCollectionPrefix + co
 const isRemoteCollection = (collection: string) => collection.startsWith(remoteCollectionPrefix)
 const remoteCollectionToName = (collection: string) => collection.slice(remoteCollectionPrefix.length)
 
-export function createVectorDatabase(): Promise<Plugin> {
+export function createVectorDatabase(): Promise<Plugin & { handle: VectorDatabase }> {
 	const handle = (database: IDBDatabase): VectorDatabase & VectorDatabaseInternal => ({
 		count(collection: string | null): Promise<number> {
 			const store = database.transaction(vectorTableName, 'readonly').objectStore(vectorTableName)
@@ -208,13 +210,30 @@ export function createVectorDatabase(): Promise<Plugin> {
 			const req = database.transaction(vectorTableName, 'readonly').objectStore(vectorTableName).get(key)
 
 			return new Promise((resolve, reject) => {
-				req.onsuccess = () =>
+				req.onsuccess = () => {
 					resolve({
 						id: key,
 						...req.result,
 					})
+				}
 				req.onerror = reject
 			})
+		},
+		getByKeys(keys: VectorEntryKey[], clb: (e: PersistedVectorEntry) => void): Promise<void> {
+			//the keypoint in this function is to open only one transaction
+			const tc = database.transaction(vectorTableName, 'readonly').objectStore(vectorTableName)
+
+			const promises = []
+			for (let key of keys) {
+				const req = tc.get(key)
+				const p = new Promise<PersistedVectorEntry>((resolve, reject) => {
+					req.onsuccess = () => resolve({ id: key, ...req.result } as PersistedVectorEntry)
+					req.onerror = reject
+				}).then((e) => clb(e))
+				promises.push(p)
+			}
+
+			return Promise.all(promises).then(() => {})
 		},
 		getByURI(uri: URI): Promise<PersistedVectorEntry> {
 			const req = database
@@ -316,7 +335,7 @@ export function createVectorDatabase(): Promise<Plugin> {
 	})
 
 	return new Promise((resolve, reject) => {
-		const req = window.indexedDB.open(projectName, 1)
+		const req = indexedDB.open(projectName, 1)
 
 		req.onerror = reject
 		req.onupgradeneeded = () => {
@@ -332,10 +351,12 @@ export function createVectorDatabase(): Promise<Plugin> {
 		}
 		req.onsuccess = () => {
 			const db = req.result as IDBDatabase
+			const dbHandle = handle(db)
 			resolve({
 				install(app: App) {
-					app.config.globalProperties.$vectorDB = handle(db)
+					app.config.globalProperties.$vectorDB = dbHandle
 				},
+				handle: dbHandle,
 			})
 		}
 	})

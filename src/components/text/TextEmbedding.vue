@@ -25,16 +25,16 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import { mapState } from 'pinia'
-import { cos_sim } from '@huggingface/transformers'
 import { useAiStore } from '../../store/ai'
-import { VectorEntry } from '../../database/vector'
 import AutoTokenizerLoader from './AutoTokenizerLoader.vue'
 import ClipTextModelLoader from './ClipTextModelLoader.vue'
 import ProgressBar from '../progress/Bar.vue'
 import ProgressDialog from '../progress/Dialog.vue'
 import { useSettingsStore } from '../../store/settings.ts'
+import { ParsedURI } from '../../database/uri.ts'
+import { createWorker, SimilarityWorker } from '../../worker/similarity.ts'
 import { delayProgress } from '../progress/delayed.ts'
-import { ParsedURI, parseURI } from '../../database/uri.ts'
+import { VectorEntryKey } from '../../database/vector.ts'
 
 export interface ImageResult {
 	uri: ParsedURI
@@ -67,6 +67,7 @@ export default defineComponent({
 				current: 0,
 				interrupted: false,
 			},
+			worker: [] as SimilarityWorker[],
 		}
 	},
 	computed: {
@@ -102,27 +103,38 @@ export default defineComponent({
 			const { text_embeds } = await this.textModel(inputs)
 
 			const candidates = [] as ImageResult[]
+			let keys = [] as VectorEntryKey[]
+			if (this.directory) {
+				keys = await this.$vectorDB.getLocalDirectoryKeys(this.directory)
+			} else if (this.collection) {
+				keys = await this.$vectorDB.getRemoteCollectionKeys(this.collection)
+			}
 
 			const delayedProgression = delayProgress((i) => (this.progress.current = i))
-			const process = (entry: VectorEntry): boolean => {
-				const similarity = cos_sim(text_embeds[0].data, Array.from(entry.embedding))
-
-				if (similarity >= this.similarityThresholdToUse) {
-					candidates.push({
-						uri: parseURI(entry.uri),
-						similarity,
-					} as ImageResult)
+			const handleCalcResult = (result: ImageResult | null): boolean => {
+				if (result) {
+					candidates.push(result)
 				}
 
 				delayedProgression.add(1)
 				return !this.progress.interrupted
 			}
 
-			if (this.directory) {
-				await this.$vectorDB.iterateLocal(this.directory, process)
-			} else if (this.collection) {
-				await this.$vectorDB.iterateRemote(this.collection, process)
+			const promises = []
+			const subArraySize = Math.ceil(keys.length / this.worker.length)
+			for (let i = 0; i < this.worker.length; i++) {
+				const vectorIds = keys.slice(i * subArraySize, (i + 1) * subArraySize)
+				const promise = this.worker[i].calcSimilarities(
+					{
+						vector: text_embeds[0].data,
+						vectorIds: vectorIds,
+						similarityThreshold: this.similarityThresholdToUse,
+					},
+					handleCalcResult,
+				)
+				promises.push(promise)
 			}
+			await Promise.all(promises)
 
 			candidates.sort((a, b) => b.similarity - a.similarity)
 			this.$emit('searchResult', candidates)
@@ -136,6 +148,13 @@ export default defineComponent({
 			this.progress.total = 0
 			this.progress.interrupted = false
 		},
+	},
+	mounted() {
+		for (let i = 0; i < navigator.hardwareConcurrency; i++) {
+			createWorker()
+				.then((w) => this.worker.push(w))
+				.catch((e) => console.error('Error while creating similarity worker!', e))
+		}
 	},
 })
 </script>
